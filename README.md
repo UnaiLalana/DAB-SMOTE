@@ -1,5 +1,5 @@
-# [DAB-SMOTE] Method - Oversampling method for imbalanced classification problems.
-## Authors: Unai Lalana & José Antonio Sanz
+## [DAB-SMOTE] Method - Oversampling method for imbalanced classification problems.
+### Authors: Unai Lalana & José Antonio Sanz
 This repository implements an oversampling method designed to improve classification performance on imbalanced datasets. The method focuses on generating synthetic minority class samples to balance class distribution and boost model F1-Score and Geometric Mean.
 
 - Implementation of the [DAB-SMOTE] oversampling technique
