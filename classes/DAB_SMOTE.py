@@ -1,6 +1,8 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances_argmin_min
+from tqdm import tqdm
+
 
 class DAB_SMOTE:
     def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, max_iter = 10000, random_state = 42):
@@ -11,6 +13,9 @@ class DAB_SMOTE:
         self.__max_iter__ = max_iter
         self.__n_removed__ = -1
         self.__random_state__ = random_state
+        self.__number_of_clusters__ = 0
+        self.__number_of_examples_generated__ = 0
+        self.__border_samples_percent__ = 0
         self.__status_code__ = 0
 
     def __euclideanDist__(self, xi, xmean):
@@ -72,7 +77,7 @@ class DAB_SMOTE:
                     if np.abs(XminCl[i, j] - ajs[j]) > (ojs[j] * k):
                         boundaries.append(XminCl[i])
             boundaries_totales.append(boundaries)
-        
+        self.__border_samples_percent__ = len(boundaries_totales) / Xmin.shape[0]
         return boundaries_totales
     
     
@@ -97,6 +102,7 @@ class DAB_SMOTE:
                 
         
         unique_clusters = sorted(set(clusters) - {-1})
+        self.__number_of_clusters__ = len(unique_clusters)
         centers_new = []
     
         for cluster in unique_clusters:
@@ -109,43 +115,53 @@ class DAB_SMOTE:
         return centers_new, clusters
     
     
-    def __generateNewSamples__(self,Xmin, boundaries, clusters, centers, N):
+    def __generateNewSamples__(self, Xmin, boundaries, clusters, centers, N):
         new_samples = []
         etiqueta_cluster = np.unique(clusters)
+
+        cluster_map = {x: (Xmin[clusters == x], np.array(boundaries[x]), centers[x]) for x in etiqueta_cluster}
+
+        cluster_cycle = []
         for x in etiqueta_cluster:
-            XminCl = Xmin[clusters == x]
-            boundariesCl = np.array(boundaries[x])
-            n_new_samples_Cl = int(np.round(XminCl.shape[0]*N/Xmin.shape[0]))
-            cl = centers[x]
-            if boundariesCl.shape[0] != 0:
-                for n in range(n_new_samples_Cl):
+            XminCl, boundariesCl, cl = cluster_map[x]
+            n_samples = int(np.round(XminCl.shape[0] * N / Xmin.shape[0]))
+            cluster_cycle.extend([(x, boundariesCl, XminCl, cl)] * n_samples)
+
+        np.random.shuffle(cluster_cycle)
+
+        for x, boundariesCl, XminCl, cl in tqdm(cluster_cycle, total=len(cluster_cycle)):
+            if boundariesCl.shape[0] == 0:
+                continue
+
+            xl_index = np.random.randint(boundariesCl.shape[0])
+            xl = boundariesCl[xl_index]
+
+            yl_index = np.random.randint(XminCl.shape[0])
+            yl = XminCl[yl_index]
+
+            tries_until_change = 0
+            total_tries = 0
+            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self.__euclideanDist__(xl, yl) > self.__euclideanDist__(xl, cl):
+                total_tries += 1
+                tries_until_change += 1
+                yl_index = np.random.randint(XminCl.shape[0])
+                yl = XminCl[yl_index]
+
+                if tries_until_change > self.__max_tries_until_change__:
+                    tries_until_change = 0
                     xl_index = np.random.randint(boundariesCl.shape[0])
                     xl = boundariesCl[xl_index]
-
                     yl_index = np.random.randint(XminCl.shape[0])
                     yl = XminCl[yl_index]
 
-                    tries_until_change = 0
-                    total_tries = 0
-                    while np.array_equal(yl,xl) or np.any(np.all(yl == centers, axis=1)) or self.__euclideanDist__(xl, yl) > self.__euclideanDist__(xl, cl):
-                        total_tries += 1
-                        tries_until_change += 1
-                        yl_index = np.random.randint(XminCl.shape[0])
-                        yl = XminCl[yl_index]
+                if total_tries > self.__max_iter__:
+                    return None
 
-                        if tries_until_change > self.__max_tries_until_change__:
-                            tries_until_change = 0
-                            xl_index = np.random.randint(boundariesCl.shape[0])
-                            xl = boundariesCl[xl_index]
+            t1 = xl + np.random.rand() * (yl - xl)
+            s1 = t1 + np.random.rand() * (cl - t1)
+            new_samples.append(s1)
+        self.__number_of_examples_generated__ = len(new_samples)
 
-                            yl_index = np.random.randint(XminCl.shape[0])
-                            yl = XminCl[yl_index]
-                        if total_tries > self.__max_iter__:
-                            return None
-
-                    t1 = xl + np.random.rand() * ( yl - xl)
-                    s1 = t1 + np.random.rand() * (cl - t1)
-                    new_samples.append(s1)
         return np.array(new_samples)
     
     def fit_resample(self, X, y):
@@ -181,5 +197,28 @@ class DAB_SMOTE:
     def n_examples_deleted(self):
         return self.__n_removed__
     
-    def status(self):
-        return self.__status_code__, {0: "Resample function not called.", 1: "Resample Succeeded.", 2: "Resample Failed, returning original Data."}.get(self.__status_code__)
+    
+    def summary(self):
+        status_msg = {
+            0: "Resample function not called.",
+            1: "Resample Succeeded.",
+            2: "Resample Failed, returning original Data."
+        }.get(self.__status_code__)
+
+        summary = {
+            "Status code": self.__status_code__,
+            "Status message": status_msg,
+            "Number of examples removed": self.__n_removed__,
+            "Number of clusters": self.__number_of_clusters__,
+            "Number of examples generated": self.__number_of_examples_generated__,
+            "Border samples percentage": self.__border_samples_percent__,
+        }
+
+        print("\n--- Summary ---")
+        for k, v in summary.items():
+            print(f"{k}: {v}")
+        print("---------------")
+        
+        return summary
+
+
