@@ -1,4 +1,1 @@
-classes/
-data/
-results/
-visualization/
+notebooks/__pycache__/
