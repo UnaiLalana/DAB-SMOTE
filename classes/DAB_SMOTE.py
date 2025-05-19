@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 
 class DAB_SMOTE:
-    def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, max_iter = 10000, random_state = 42):
+    def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, max_iter = 10000, random_state = 42, debug_mode = False):
         self.__r__ = r
         self.__distMethod__ = distMethod
         self.__k__ = k
@@ -17,6 +17,7 @@ class DAB_SMOTE:
         self.__number_of_examples_generated__ = 0
         self.__border_samples_percent__ = 0
         self.__status_code__ = 0
+        self.__debug_mode__ = debug_mode
 
     def __euclideanDist__(self, xi, xmean):
         dist = np.sqrt(np.sum((xi - xmean)**2))
@@ -222,12 +223,19 @@ class DAB_SMOTE:
         return summary
     
     def get_removed_samples(self, Xmin):
-        return self.__removeNoisySamples__(Xmin)
+        if self.__debug_mode__:
+            return self.__removeNoisySamples__(Xmin)
+        
     def get_clustering(self, Xmin):
-        return self.__clustering__(Xmin)
+        if self.__debug_mode__:
+            return self.__clustering__(Xmin)
+    
     def get_screened_boundaries(self, Xmin, clusters):
-        return self.__screenBoundarySamples__(Xmin, clusters)
+        if self.__debug_mode__:
+            return self.__screenBoundarySamples__(Xmin, clusters)
+    
     def get_generated_samples(self, Xmin, borders, clusters, centers, N):
-        return self.__generateNewSamples__(Xmin, borders, clusters, centers, N)
+        if self.__debug_mode__:
+            return self.__generateNewSamples__(Xmin, borders, clusters, centers, N)
 
 
