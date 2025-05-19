@@ -220,5 +220,14 @@ class DAB_SMOTE:
         print("---------------")
         
         return summary
+    
+    def get_removed_samples(self, Xmin):
+        return self.__removeNoisySamples__(Xmin)
+    def get_clustering(self, Xmin):
+        return self.__clustering__(Xmin)
+    def get_screened_boundaries(self, Xmin, clusters):
+        return self.__screenBoundarySamples__(Xmin, clusters)
+    def get_generated_samples(self, Xmin, borders, clusters, centers, N):
+        return self.__generateNewSamples__(Xmin, borders, clusters, centers, N)
 
 
