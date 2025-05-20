@@ -83,7 +83,7 @@ class DAB_SMOTE:
     
     
     def __clustering__(self, Xmin):
-        db = DBSCAN(eps=0.2, min_samples=10).fit(Xmin)
+        db = DBSCAN(eps=0.75, min_samples=10).fit(Xmin)
         clusters = db.labels_
 
 
