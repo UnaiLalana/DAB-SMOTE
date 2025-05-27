@@ -5,12 +5,13 @@ from tqdm import tqdm
 
 
 class DAB_SMOTE:
-    def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, max_iter = 10000, random_state = 42, debug_mode = False):
+    def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, max_iter = 10000, random_state = 42, solver='centers', debug_mode = False):
         self.__r__ = r
         self.__distMethod__ = distMethod
         self.__k__ = k
         self.__max_tries_until_change__ = max_tries_until_change
         self.__max_iter__ = max_iter
+        self.__solver__ = solver
         self.__n_removed__ = -1
         self.__random_state__ = random_state
         self.__number_of_clusters__ = 0
