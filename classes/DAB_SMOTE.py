@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 
 class DAB_SMOTE:
-    def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, max_iter = 10000, random_state = 42, solver='centers', debug_mode = False):
+    def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, max_iter = 10000, random_state = 42, solver='centers', progress = False, debug_mode = False):
         self.__r__ = r
         self.__distMethod__ = distMethod
         self.__k__ = k
@@ -14,6 +14,7 @@ class DAB_SMOTE:
         self.__solver__ = solver
         self.__n_removed__ = -1
         self.__random_state__ = random_state
+        self.__progress__ = progress
         self.__number_of_clusters__ = 0
         self.__number_of_examples_generated__ = 0
         self.__border_samples_percent__ = 0
@@ -131,9 +132,9 @@ class DAB_SMOTE:
 
         np.random.shuffle(cluster_cycle)
 
-        for x, boundariesCl, XminCl, cl in tqdm(cluster_cycle, total=len(cluster_cycle)):
-            if boundariesCl.shape[0] == 0:
-                continue
+        iterable = tqdm(cluster_cycle, total=len(cluster_cycle)) if self.__progress__ else cluster_cycle
+
+        for x, boundariesCl, XminCl, cl in iterable:
 
             xl_index = np.random.randint(boundariesCl.shape[0])
             xl = boundariesCl[xl_index]
