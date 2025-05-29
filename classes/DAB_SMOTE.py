@@ -2,11 +2,12 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances_argmin_min
 from tqdm import tqdm
+from sklearn.neighbors import NearestNeighbors
 
 
 class DAB_SMOTE:
     def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, 
-                 max_iter = 10000, random_state = 42, solver='centers', progress = False, debug_mode = False):
+                 max_iter = 10000, random_state = 42, solver='means', progress = False, debug_mode = False):
         self.__r__ = r
         self.__distMethod__ = distMethod
         self.__k__ = k
@@ -108,11 +109,21 @@ class DAB_SMOTE:
         unique_clusters = sorted(set(clusters) - {-1})
         self.__number_of_clusters__ = len(unique_clusters)
         centers_new = []
-    
-        for cluster in unique_clusters:
-            cluster_points = Xmin[clusters == cluster]
-            center = cluster_points.mean(axis=0) 
-            centers_new.append(center)
+
+        if self.__solver__ == 'means':
+            for cluster in unique_clusters:
+                cluster_points = Xmin[clusters == cluster]
+                center = cluster_points.mean(axis=0) 
+                centers_new.append(center)
+        elif self.__solver__ == 'density':
+            for cluster in unique_clusters:
+                cluster_points = Xmin[clusters == cluster]
+                nbrs = NearestNeighbors(radius=0.75).fit(cluster_points)
+                radii_neighbors = nbrs.radius_neighbors(cluster_points, return_distance=False)
+                neighbor_counts = np.array([len(neigh) for neigh in radii_neighbors])
+                most_dense_index = np.argmax(neighbor_counts)
+                most_dense_point = cluster_points[most_dense_index]
+                centers_new.append(most_dense_point)
 
         centers_new = np.array(centers_new)
         
@@ -229,7 +240,8 @@ class DAB_SMOTE:
         if self.__debug_mode__:
             return self.__removeNoisySamples__(Xmin)
         
-    def get_clustering(self, Xmin):
+    def get_clustering(self, Xmin, solver='means'):
+        self.__solver__ = solver
         if self.__debug_mode__:
             return self.__clustering__(Xmin)
     
