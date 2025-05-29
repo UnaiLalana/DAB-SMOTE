@@ -1,7 +1,7 @@
 import numpy as np
 from collections import OrderedDict
 
-def lecturaDatos(fileE):
+def dataReading(fileE):
 	f=open(fileE,'r')
 	line=f.readline()
 	att=OrderedDict()
