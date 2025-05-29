@@ -1,9 +1,81 @@
-## [DAB-SMOTE] Method - Oversampling method for imbalanced classification problems.
-### Authors: Unai Lalana & José Antonio Sanz
-This repository implements an oversampling method designed to improve classification performance on imbalanced datasets. The method focuses on generating synthetic minority class samples to balance class distribution and boost model F1-Score and Geometric Mean.
+# DAB-SMOTE: Density-Aware Borderline SMOTE
 
-- Implementation of the [DAB-SMOTE] oversampling technique
-- Comparison with SMOTE and other popular methods
-- Visual representation of the technique
-- Evaluation on classic datasets (e.g., Wine, Breast Cancer)
-- Visualization of results
+**Authors:** Unai Lalana Morales & José Antonio Sanz Delgado  
+
+DAB-SMOTE is an advanced oversampling method for handling classification problems with imbalanced classes. Its goal is to improve classifier performance by generating synthetic samples of the minority class, taking into account the distribution, density, and clusters boundaries [1].
+
+## Method Description
+DAB-SMOTE combines noise detection techniques, density-based clustering (DBSCAN), boundary analysis, and synthetic sample generation guided by the data structure. The method includes:
+
+- **Noise removal:** Identification and elimination of outliers in the minority class using statistical distances (euclidean, manhattan, chebyshev).
+- **Clustering:** Grouping of the minority class using DBSCAN, with the option of centroid by mean or densest point.
+- **Boundary detection:** Identification of samples at the boundary of each cluster.
+- **Sample generation:** Creation of new synthetic instances from the boundary and centroid of each cluster, respecting the local structure.
+
+## Repository Structure
+
+- `classes/`
+    - `DAB_SMOTE.py`: Main implementation of the DAB-SMOTE method.
+    - `dataset.py`: Utilities for reading datasets in .dat format.
+- `data/`
+    - `benchmarks/`: Classic imbalanced datasets for benchmarking.
+    - `initial_test/`: Example dataset for quick tests.
+- `notebooks/`
+    - `InitialTest.ipynb`: Basic usage and visualization example.
+    - `DensityBasedCenters.ipynb`: Advanced example with density-based centers.
+    - `Visualization.ipynb`: Visualization tools.
+    - `benchmarks/InitialBenchmarks.ipynb`: Simple benchmarking
+
+## Installation and Dependencies
+
+It is recommended to use a virtual environment. The main dependencies are:
+
+- Python >= 3.8
+- numpy
+- scikit-learn
+- matplotlib
+- tqdm
+- pandas
+
+Quick installation:
+
+```powershell
+pip install numpy scikit-learn matplotlib tqdm pandas
+```
+
+## Basic Usage Example
+
+```python
+from classes.DAB_SMOTE import DAB_SMOTE
+import pandas as pd
+import numpy as np
+
+# Load data (example with CSV)
+df = pd.read_csv('data/initial_test/glass4.dat', header=None)
+X = np.array(df.iloc[:, :-1])
+y = np.array(df.iloc[:, -1])
+
+# Instantiate and apply DAB-SMOTE
+dab = DAB_SMOTE(distMethod='euclidean', k=2, progress=True)
+X_res, y_res = dab.fit_resample(X, y)
+dab.summary()
+```
+
+For complete examples and visualizations, see the notebooks in the `notebooks/` folder.
+
+## Main Parameters
+- `distMethod`: Distance method for noise detection (`'euclidean'`, `'manhattan'`, `'chebyshev'`).
+- `k`: Borderline factor for borderline sample detection.
+- `solver`: Centroid strategy (`'means'` for mean, `'density'` for densest point).
+- `progress`: Shows progress bar.
+- `debug_mode`: Returns intermediate information for analysis.
+
+## Datasets
+The benchmarking datasets are in `data/benchmarks/` and follow the .dat format. Use the utilities in `classes/dataset.py` to read them.
+
+## References and Citation
+[1]	U. Lalana and J. A. S. Delgado, ‘Estudio, análisis e implementación de FSDR-SMOTE, técnica de sobremuestreo para problemas de clasificación desbalanceados’, Universidad Publica de Navarra.
+
+---
+
+For any questions or contributions, contact the authors.
