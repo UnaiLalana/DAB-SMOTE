@@ -5,7 +5,8 @@ from tqdm import tqdm
 
 
 class DAB_SMOTE:
-    def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, max_iter = 10000, random_state = 42, solver='centers', progress = False, debug_mode = False):
+    def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, 
+                 max_iter = 10000, random_state = 42, solver='centers', progress = False, debug_mode = False):
         self.__r__ = r
         self.__distMethod__ = distMethod
         self.__k__ = k
