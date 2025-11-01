@@ -1,3 +1,23 @@
+"""
+dab_smote.py
+============
+
+Implementation of DAB-SMOTE (Density Aware Borderline Synthetic Minority Oversampling Technique).
+
+This module provides a data-level resampling approach designed to address class imbalance problems
+by generating synthetic samples for the minority class. It combines boundary detection,
+noise removal, and density-based clustering to improve the representativeness of synthetic samples.
+
+References
+----------
+- U. Lalana and J. A. S. Delgado, ‘Estudio, análisis e implementación de FSDR-SMOTE, 
+técnica de sobremuestreo para problemas de clasificación desbalanceados’, Universidad Publica de Navarra.
+
+Author
+------
+Unai Lalana
+"""
+
 import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances_argmin_min
@@ -6,116 +26,196 @@ from sklearn.neighbors import NearestNeighbors
 
 
 class DAB_SMOTE:
-    def __init__(self, r = 1.5, distMethod = "euclidean", k = 1, max_tries_until_change = 10, 
-                 max_iter = 10000, random_state = 42, solver='means', progress = False, debug_mode = False):
-        self.__r__ = r
-        self.__distMethod__ = distMethod
-        self.__k__ = k
-        self.__max_tries_until_change__ = max_tries_until_change
-        self.__max_iter__ = max_iter
-        self.__solver__ = solver
-        self.__n_removed__ = -1
-        self.__random_state__ = random_state
-        self.__progress__ = progress
-        self.__number_of_clusters__ = 0
-        self.__number_of_examples_generated__ = 0
-        self.__border_samples_percent__ = 0
-        self.__status_code__ = 0
-        self.__debug_mode__ = debug_mode
+    """
+    Density and Boundary-based Synthetic Minority Oversampling Technique (DAB-SMOTE).
 
-    def __euclideanDist__(self, xi, xmean):
+    This method generates new synthetic samples for the minority class by:
+    1. Removing noisy samples using IQR-based filtering.
+    2. Clustering the remaining data with DBSCAN.
+    3. Detecting boundary samples within clusters.
+    4. Interpolating between boundary, cluster, and central points to create synthetic samples.
+
+    Parameters
+    ----------
+    r : float, default=1.5
+        Multiplier for IQR when filtering noisy samples.
+    distMethod : {'euclidean', 'manhattan', 'chebyshev'}, default='euclidean'
+        Distance metric used for noise filtering.
+    k : int, default=1
+        Standard deviation multiplier for boundary sample detection.
+    max_tries_until_change : int, default=10
+        Maximum number of retries before changing boundary samples.
+    max_iter : int, default=10000
+        Maximum number of total iterations allowed during sample generation.
+    random_state : int, default=42
+        Random seed for reproducibility.
+    solver : {'means', 'density'}, default='means'
+        Method used to calculate cluster centers ('means' or 'density').
+    progress : bool, default=False
+        If True, shows a progress bar during sample generation.
+    debug_mode : bool, default=False
+        Enables debug functions for inspecting intermediate stages.
+
+    Attributes
+    ----------
+    n_removed_ : int
+        Number of noisy samples removed.
+    number_of_clusters_ : int
+        Number of clusters found by DBSCAN.
+    number_of_examples_generated_ : int
+        Number of new synthetic examples generated.
+    border_samples_percent_ : float
+        Ratio of boundary samples to total samples.
+    status_code_ : int
+        Status code for the resampling process:
+        - 0: Not executed
+        - 1: Success
+        - 2: Failed (returns original data)
+    """
+
+    def __init__(self, r=1.5, distMethod="euclidean", k=1, max_tries_until_change=10,
+                 max_iter=10000, random_state=42, solver='means', progress=False, debug_mode=False):
+        self._r = r
+        self._distMethod = distMethod
+        self._k = k
+        self._max_tries_until_change = max_tries_until_change
+        self._max_iter = max_iter
+        self._solver = solver
+        self._n_removed = -1
+        self._random_state = random_state
+        self._progress = progress
+        self._number_of_clusters = 0
+        self._number_of_examples_generated = 0
+        self._border_samples_percent = 0
+        self._status_code = 0
+        self._debug_mode = debug_mode
+
+    def _euclideanDist(self, xi, xmean):
+        """Compute Euclidean distance between two vectors."""
         dist = np.sqrt(np.sum((xi - xmean)**2))
         return dist
-    
-    def __manhattanDist__(self, xi, xmean):
+
+    def _manhattanDist(self, xi, xmean):
+        """Compute Manhattan distance between two vectors."""
         dist = np.sum(np.abs(xi - xmean))
         return dist
-    
-    def __chebyshevDist__(self, xi, xmean):
-        dist = np.max(xi-xmean)
+
+    def _chebyshevDist(self, xi, xmean):
+        """Compute Chebyshev distance between two vectors."""
+        dist = np.max(xi - xmean)
         return dist
-    
-    def __removeNoisySamples__(self, Xmin):
+
+    def _removeNoisySamples(self, Xmin):
+        """
+        Remove noisy samples based on the interquartile range (IQR) method.
+
+        Parameters
+        ----------
+        Xmin : ndarray of shape (n_samples, n_features)
+            Minority class samples.
+
+        Returns
+        -------
+        Xmin : ndarray
+            Minority samples with noisy points removed.
+        """
         Xmin_mean = np.mean(Xmin, axis=0)
-        
-        distMethods = {"euclidean": self.__euclideanDist__, "manhattan": self.__manhattanDist__, "chebyshev": self.__chebyshevDist__}
-        
+        distMethods = {"euclidean": self._euclideanDist, "manhattan": self._manhattanDist, "chebyshev": self._chebyshevDist}
         dists = np.zeros(np.shape(Xmin)[0])
-        
         N = np.shape(Xmin)[0]
-        
+
         for i in range(len(Xmin)):
-            dists[i] = distMethods[self.__distMethod__](Xmin[i], Xmin_mean)
-        
+            dists[i] = distMethods[self._distMethod](Xmin[i], Xmin_mean)
+
         dists_sort = np.sort(dists)
-        
         Q1 = dists_sort[int(np.round((N+1)*0.25))]
         Q3 = dists_sort[int(np.round((N+1)*0.75))]
         IQR = Q3 - Q1
-        ub = Q1 + self.__r__ * IQR
-        
+        ub = Q1 + self._r * IQR
+
         delete = []
-        
         for i in range(len(dists)):
             if dists[i] > ub:
                 delete.append(i)
-        
-        self.__n_removed__ = len(delete)
-        Xmin = np.delete(Xmin, delete, axis = 0)
-                
+
+        self._n_removed = len(delete)
+        Xmin = np.delete(Xmin, delete, axis=0)
         return Xmin
-    
-    
-    def __screenBoundarySamples__(self, Xmin, clusters):
-        k = self.__k__
-            
+
+    def _screenBoundarySamples(self, Xmin, clusters):
+        """
+        Identify boundary samples in each cluster.
+
+        Parameters
+        ----------
+        Xmin : ndarray
+            Minority class samples.
+        clusters : ndarray
+            Cluster labels assigned by DBSCAN.
+
+        Returns
+        -------
+        list of list
+            Boundary samples detected per cluster.
+        """
+        k = self._k
         etiqueta_cluster = np.unique(clusters)
-    
         boundaries_totales = []
+
         for x in etiqueta_cluster:
             XminCl = Xmin[clusters == x]
             ajs = np.mean(XminCl, axis=0)
-            ojs = np.std(XminCl, axis=0) 
+            ojs = np.std(XminCl, axis=0)
             boundaries = []
             for j in range(XminCl.shape[1]):
                 for i in range(XminCl.shape[0]):
                     if np.abs(XminCl[i, j] - ajs[j]) > (ojs[j] * k):
                         boundaries.append(XminCl[i])
             boundaries_totales.append(boundaries)
-        self.__border_samples_percent__ = len(boundaries_totales) / Xmin.shape[0]
+
+        self._border_samples_percent = len(boundaries_totales) / Xmin.shape[0]
         return boundaries_totales
-    
-    
-    def __clustering__(self, Xmin):
+
+    def _clustering(self, Xmin):
+        """
+        Cluster minority samples using DBSCAN and compute cluster centers.
+
+        Parameters
+        ----------
+        Xmin : ndarray
+            Minority class samples.
+
+        Returns
+        -------
+        centers_new : ndarray
+            Computed cluster centers.
+        clusters : ndarray
+            Cluster labels assigned to each sample.
+        """
         db = DBSCAN(eps=0.75, min_samples=10).fit(Xmin)
         clusters = db.labels_
-
 
         noise_indices = np.where(clusters == -1)[0]
         cluster_indices = np.where(clusters != -1)[0]
 
         if len(noise_indices) > 0:
             if len(cluster_indices) > 0:
-
                 closest_clusters, _ = pairwise_distances_argmin_min(Xmin[noise_indices], Xmin[cluster_indices])
-
                 for noise_idx, closest_idx in zip(noise_indices, closest_clusters):
                     clusters[noise_idx] = clusters[cluster_indices[closest_idx]]
-
             else:
                 clusters[noise_indices] = 0
-                
-        
+
         unique_clusters = sorted(set(clusters) - {-1})
-        self.__number_of_clusters__ = len(unique_clusters)
+        self._number_of_clusters = len(unique_clusters)
         centers_new = []
 
-        if self.__solver__ == 'means':
+        if self._solver == 'means':
             for cluster in unique_clusters:
                 cluster_points = Xmin[clusters == cluster]
-                center = cluster_points.mean(axis=0) 
+                center = cluster_points.mean(axis=0)
                 centers_new.append(center)
-        elif self.__solver__ == 'density':
+        elif self._solver == 'density':
             for cluster in unique_clusters:
                 cluster_points = Xmin[clusters == cluster]
                 nbrs = NearestNeighbors(radius=0.75).fit(cluster_points)
@@ -126,131 +226,164 @@ class DAB_SMOTE:
                 centers_new.append(most_dense_point)
 
         centers_new = np.array(centers_new)
-        
         return centers_new, clusters
-    
-    
-    def __generateNewSamples__(self, Xmin, boundaries, clusters, centers, N):
+
+    def _generateNewSamples(self, Xmin, boundaries, clusters, centers, N):
+        """
+        Generate new synthetic samples from cluster boundaries and centers.
+
+        Parameters
+        ----------
+        Xmin : ndarray
+            Minority samples after cleaning.
+        boundaries : list of list
+            Detected boundary samples.
+        clusters : ndarray
+            Cluster labels.
+        centers : ndarray
+            Cluster centers.
+        N : int
+            Number of synthetic samples to generate.
+
+        Returns
+        -------
+        ndarray
+            Array of new synthetic samples.
+        """
         new_samples = []
         etiqueta_cluster = np.unique(clusters)
-
         cluster_map = {x: (Xmin[clusters == x], np.array(boundaries[x]), centers[x]) for x in etiqueta_cluster}
-
         cluster_cycle = []
+
         for x in etiqueta_cluster:
             XminCl, boundariesCl, cl = cluster_map[x]
             n_samples = int(np.round(XminCl.shape[0] * N / Xmin.shape[0]))
             cluster_cycle.extend([(x, boundariesCl, XminCl, cl)] * n_samples)
 
         np.random.shuffle(cluster_cycle)
-
-        iterable = tqdm(cluster_cycle, total=len(cluster_cycle)) if self.__progress__ else cluster_cycle
+        iterable = tqdm(cluster_cycle, total=len(cluster_cycle)) if self._progress else cluster_cycle
 
         for x, boundariesCl, XminCl, cl in iterable:
-
             xl_index = np.random.randint(boundariesCl.shape[0])
             xl = boundariesCl[xl_index]
-
             yl_index = np.random.randint(XminCl.shape[0])
             yl = XminCl[yl_index]
 
             tries_until_change = 0
             total_tries = 0
-            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self.__euclideanDist__(xl, yl) > self.__euclideanDist__(xl, cl):
+            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self._euclideanDist(xl, yl) > self._euclideanDist(xl, cl):
                 total_tries += 1
                 tries_until_change += 1
                 yl_index = np.random.randint(XminCl.shape[0])
                 yl = XminCl[yl_index]
 
-                if tries_until_change > self.__max_tries_until_change__:
+                if tries_until_change > self._max_tries_until_change:
                     tries_until_change = 0
                     xl_index = np.random.randint(boundariesCl.shape[0])
                     xl = boundariesCl[xl_index]
                     yl_index = np.random.randint(XminCl.shape[0])
                     yl = XminCl[yl_index]
 
-                if total_tries > self.__max_iter__:
+                if total_tries > self._max_iter:
                     return None
 
             t1 = xl + np.random.rand() * (yl - xl)
             s1 = t1 + np.random.rand() * (cl - t1)
             new_samples.append(s1)
-        self.__number_of_examples_generated__ = len(new_samples)
 
+        self._number_of_examples_generated = len(new_samples)
         return np.array(new_samples)
-    
+
     def fit_resample(self, X, y):
-        self.__X__ = X
-        self.__y__ = y
-        np.random.seed(self.__random_state__)
-        labels, counts = np.unique(self.__y__, return_counts=True)
+        """
+        Fit and resample the dataset by generating synthetic minority samples.
+
+        Parameters
+        ----------
+        X : ndarray
+            Input feature matrix.
+        y : ndarray
+            Class labels.
+
+        Returns
+        -------
+        Xnew : ndarray
+            Resampled feature matrix.
+        ynew : ndarray
+            Resampled class labels.
+        """
+        self._X = X
+        self._y = y
+        np.random.seed(self._random_state)
+        labels, counts = np.unique(self._y, return_counts=True)
         minLabel = labels[np.argmin(counts)]
-        ymin = self.__y__[self.__y__ == minLabel]
-        Xmin = self.__X__[self.__y__ == minLabel]
-        
+        ymin = self._y[self._y == minLabel]
+        Xmin = self._X[self._y == minLabel]
         N = np.max(counts) - np.min(counts)
-        
-        Xmin_removed = self.__removeNoisySamples__(Xmin)
 
-        
-        centers, clusters = self.__clustering__(Xmin_removed)
+        Xmin_removed = self._removeNoisySamples(Xmin)
+        centers, clusters = self._clustering(Xmin_removed)
+        boundaries = self._screenBoundarySamples(Xmin_removed, clusters)
+        new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, N)
 
-        
-        boundaries = self.__screenBoundarySamples__(Xmin_removed, clusters)
-        
-        new_samples = self.__generateNewSamples__(Xmin_removed, boundaries, clusters, centers, N)
-        
         if new_samples is None or new_samples.shape[0] == 0:
-            self.__status_code__ = 2
-            return self.__X__, self.__y__
-        
-        Xnew = np.vstack((self.__X__, new_samples))
-        ynew = np.hstack((self.__y__, np.array([minLabel]*new_samples.shape[0])))
-        self.__status_code__ = 1
+            self._status_code = 2
+            return self._X, self._y
+
+        Xnew = np.vstack((self._X, new_samples))
+        ynew = np.hstack((self._y, np.array([minLabel]*new_samples.shape[0])))
+        self._status_code = 1
         return Xnew, ynew
-    
-    def n_examples_deleted(self):
-        return self.__n_removed__
-    
-    
+
+    @property
     def summary(self):
+        """
+        Print and return a summary of the resampling process.
+
+        Returns
+        -------
+        dict
+            Summary including key performance indicators.
+        """
         status_msg = {
             0: "Resample function not called.",
             1: "Resample Succeeded.",
             2: "Resample Failed, returning original Data."
-        }.get(self.__status_code__)
+        }.get(self._status_code)
 
         summary = {
-            "Status code": self.__status_code__,
+            "Status code": self._status_code,
             "Status message": status_msg,
-            "Number of examples removed": self.__n_removed__,
-            "Number of clusters": self.__number_of_clusters__,
-            "Number of examples generated": self.__number_of_examples_generated__,
-            "Border samples percentage": self.__border_samples_percent__,
+            "Number of examples removed": self._n_removed,
+            "Number of clusters": self._number_of_clusters,
+            "Number of examples generated": self._number_of_examples_generated,
+            "Border samples percentage": self._border_samples_percent,
         }
 
         print("\n--- Summary ---")
         for k, v in summary.items():
             print(f"{k}: {v}")
         print("---------------")
-        
         return summary
-    
-    def get_removed_samples(self, Xmin):
-        if self.__debug_mode__:
-            return self.__removeNoisySamples__(Xmin)
-        
-    def get_clustering(self, Xmin, solver='means'):
-        self.__solver__ = solver
-        if self.__debug_mode__:
-            return self.__clustering__(Xmin)
-    
-    def get_screened_boundaries(self, Xmin, clusters):
-        if self.__debug_mode__:
-            return self.__screenBoundarySamples__(Xmin, clusters)
-    
-    def get_generated_samples(self, Xmin, borders, clusters, centers, N):
-        if self.__debug_mode__:
-            return self.__generateNewSamples__(Xmin, borders, clusters, centers, N)
 
+    def get_removed_samples(self, Xmin):
+        """Return filtered samples (debug only)."""
+        if self._debug_mode:
+            return self._removeNoisySamples(Xmin)
+
+    def get_clustering(self, Xmin, solver='means'):
+        """Return clustering results (debug only)."""
+        self._solver = solver
+        if self._debug_mode:
+            return self._clustering(Xmin)
+
+    def get_screened_boundaries(self, Xmin, clusters):
+        """Return detected boundaries (debug only)."""
+        if self._debug_mode:
+            return self._screenBoundarySamples(Xmin, clusters)
+
+    def get_generated_samples(self, Xmin, borders, clusters, centers, N):
+        """Return generated synthetic samples (debug only)."""
+        if self._debug_mode:
+            return self._generateNewSamples(Xmin, borders, clusters, centers, N)
 
