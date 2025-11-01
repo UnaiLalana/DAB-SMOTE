@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>classes.DAB_SMOTE API documentation</title>
+<meta name="description" content="dab_smote.py
+…">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>classes.DAB_SMOTE</code></h1>
+</header>
+<section id="section-intro">
+<h1 id="dab_smotepy">dab_smote.py</h1>
+<p>Implementation of DAB-SMOTE (Density Aware Borderline Synthetic Minority Oversampling Technique).</p>
+<p>This module provides a data-level resampling approach designed to address class imbalance problems
+by generating synthetic samples for the minority class. It combines boundary detection,
+noise removal, and density-based clustering to improve the representativeness of synthetic samples.</p>
+<h2 id="references">References</h2>
+<ul>
+<li>U. Lalana and J. A. S. Delgado, ‘Estudio, análisis e implementación de FSDR-SMOTE,
+técnica de sobremuestreo para problemas de clasificación desbalanceados’, Universidad Publica de Navarra.</li>
+</ul>
+<h2 id="author">Author</h2>
+<p>Unai Lalana</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="classes.DAB_SMOTE.DAB_SMOTE"><code class="flex name class">
+<span>class <span class="ident">DAB_SMOTE</span></span>
+<span>(</span><span>r=1.5,<br>distMethod='euclidean',<br>k=1,<br>max_tries_until_change=10,<br>max_iter=10000,<br>random_state=42,<br>solver='means',<br>progress=False,<br>debug_mode=False)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DAB_SMOTE:
+    &#34;&#34;&#34;
+    Density and Boundary-based Synthetic Minority Oversampling Technique (DAB-SMOTE).
+
+    This method generates new synthetic samples for the minority class by:
+    1. Removing noisy samples using IQR-based filtering.
+    2. Clustering the remaining data with DBSCAN.
+    3. Detecting boundary samples within clusters.
+    4. Interpolating between boundary, cluster, and central points to create synthetic samples.
+
+    Parameters
+    ----------
+    r : float, default=1.5
+        Multiplier for IQR when filtering noisy samples.
+    distMethod : {&#39;euclidean&#39;, &#39;manhattan&#39;, &#39;chebyshev&#39;}, default=&#39;euclidean&#39;
+        Distance metric used for noise filtering.
+    k : int, default=1
+        Standard deviation multiplier for boundary sample detection.
+    max_tries_until_change : int, default=10
+        Maximum number of retries before changing boundary samples.
+    max_iter : int, default=10000
+        Maximum number of total iterations allowed during sample generation.
+    random_state : int, default=42
+        Random seed for reproducibility.
+    solver : {&#39;means&#39;, &#39;density&#39;}, default=&#39;means&#39;
+        Method used to calculate cluster centers (&#39;means&#39; or &#39;density&#39;).
+    progress : bool, default=False
+        If True, shows a progress bar during sample generation.
+    debug_mode : bool, default=False
+        Enables debug functions for inspecting intermediate stages.
+
+    Attributes
+    ----------
+    n_removed_ : int
+        Number of noisy samples removed.
+    number_of_clusters_ : int
+        Number of clusters found by DBSCAN.
+    number_of_examples_generated_ : int
+        Number of new synthetic examples generated.
+    border_samples_percent_ : float
+        Ratio of boundary samples to total samples.
+    status_code_ : int
+        Status code for the resampling process:
+        - 0: Not executed
+        - 1: Success
+        - 2: Failed (returns original data)
+    &#34;&#34;&#34;
+
+    def __init__(self, r=1.5, distMethod=&#34;euclidean&#34;, k=1, max_tries_until_change=10,
+                 max_iter=10000, random_state=42, solver=&#39;means&#39;, progress=False, debug_mode=False):
+        self._r = r
+        self._distMethod = distMethod
+        self._k = k
+        self._max_tries_until_change = max_tries_until_change
+        self._max_iter = max_iter
+        self._solver = solver
+        self._n_removed = -1
+        self._random_state = random_state
+        self._progress = progress
+        self._number_of_clusters = 0
+        self._number_of_examples_generated = 0
+        self._border_samples_percent = 0
+        self._status_code = 0
+        self._debug_mode = debug_mode
+
+    def _euclideanDist(self, xi, xmean):
+        &#34;&#34;&#34;Compute Euclidean distance between two vectors.&#34;&#34;&#34;
+        dist = np.sqrt(np.sum((xi - xmean)**2))
+        return dist
+
+    def _manhattanDist(self, xi, xmean):
+        &#34;&#34;&#34;Compute Manhattan distance between two vectors.&#34;&#34;&#34;
+        dist = np.sum(np.abs(xi - xmean))
+        return dist
+
+    def _chebyshevDist(self, xi, xmean):
+        &#34;&#34;&#34;Compute Chebyshev distance between two vectors.&#34;&#34;&#34;
+        dist = np.max(xi - xmean)
+        return dist
+
+    def _removeNoisySamples(self, Xmin):
+        &#34;&#34;&#34;
+        Remove noisy samples based on the interquartile range (IQR) method.
+
+        Parameters
+        ----------
+        Xmin : ndarray of shape (n_samples, n_features)
+            Minority class samples.
+
+        Returns
+        -------
+        Xmin : ndarray
+            Minority samples with noisy points removed.
+        &#34;&#34;&#34;
+        Xmin_mean = np.mean(Xmin, axis=0)
+        distMethods = {&#34;euclidean&#34;: self._euclideanDist, &#34;manhattan&#34;: self._manhattanDist, &#34;chebyshev&#34;: self._chebyshevDist}
+        dists = np.zeros(np.shape(Xmin)[0])
+        N = np.shape(Xmin)[0]
+
+        for i in range(len(Xmin)):
+            dists[i] = distMethods[self._distMethod](Xmin[i], Xmin_mean)
+
+        dists_sort = np.sort(dists)
+        Q1 = dists_sort[int(np.round((N+1)*0.25))]
+        Q3 = dists_sort[int(np.round((N+1)*0.75))]
+        IQR = Q3 - Q1
+        ub = Q1 + self._r * IQR
+
+        delete = []
+        for i in range(len(dists)):
+            if dists[i] &gt; ub:
+                delete.append(i)
+
+        self._n_removed = len(delete)
+        Xmin = np.delete(Xmin, delete, axis=0)
+        return Xmin
+
+    def _screenBoundarySamples(self, Xmin, clusters):
+        &#34;&#34;&#34;
+        Identify boundary samples in each cluster.
+
+        Parameters
+        ----------
+        Xmin : ndarray
+            Minority class samples.
+        clusters : ndarray
+            Cluster labels assigned by DBSCAN.
+
+        Returns
+        -------
+        list of list
+            Boundary samples detected per cluster.
+        &#34;&#34;&#34;
+        k = self._k
+        etiqueta_cluster = np.unique(clusters)
+        boundaries_totales = []
+
+        for x in etiqueta_cluster:
+            XminCl = Xmin[clusters == x]
+            ajs = np.mean(XminCl, axis=0)
+            ojs = np.std(XminCl, axis=0)
+            boundaries = []
+            for j in range(XminCl.shape[1]):
+                for i in range(XminCl.shape[0]):
+                    if np.abs(XminCl[i, j] - ajs[j]) &gt; (ojs[j] * k):
+                        boundaries.append(XminCl[i])
+            boundaries_totales.append(boundaries)
+
+        self._border_samples_percent = len(boundaries_totales) / Xmin.shape[0]
+        return boundaries_totales
+
+    def _clustering(self, Xmin):
+        &#34;&#34;&#34;
+        Cluster minority samples using DBSCAN and compute cluster centers.
+
+        Parameters
+        ----------
+        Xmin : ndarray
+            Minority class samples.
+
+        Returns
+        -------
+        centers_new : ndarray
+            Computed cluster centers.
+        clusters : ndarray
+            Cluster labels assigned to each sample.
+        &#34;&#34;&#34;
+        db = DBSCAN(eps=0.75, min_samples=10).fit(Xmin)
+        clusters = db.labels_
+
+        noise_indices = np.where(clusters == -1)[0]
+        cluster_indices = np.where(clusters != -1)[0]
+
+        if len(noise_indices) &gt; 0:
+            if len(cluster_indices) &gt; 0:
+                closest_clusters, _ = pairwise_distances_argmin_min(Xmin[noise_indices], Xmin[cluster_indices])
+                for noise_idx, closest_idx in zip(noise_indices, closest_clusters):
+                    clusters[noise_idx] = clusters[cluster_indices[closest_idx]]
+            else:
+                clusters[noise_indices] = 0
+
+        unique_clusters = sorted(set(clusters) - {-1})
+        self._number_of_clusters = len(unique_clusters)
+        centers_new = []
+
+        if self._solver == &#39;means&#39;:
+            for cluster in unique_clusters:
+                cluster_points = Xmin[clusters == cluster]
+                center = cluster_points.mean(axis=0)
+                centers_new.append(center)
+        elif self._solver == &#39;density&#39;:
+            for cluster in unique_clusters:
+                cluster_points = Xmin[clusters == cluster]
+                nbrs = NearestNeighbors(radius=0.75).fit(cluster_points)
+                radii_neighbors = nbrs.radius_neighbors(cluster_points, return_distance=False)
+                neighbor_counts = np.array([len(neigh) for neigh in radii_neighbors])
+                most_dense_index = np.argmax(neighbor_counts)
+                most_dense_point = cluster_points[most_dense_index]
+                centers_new.append(most_dense_point)
+
+        centers_new = np.array(centers_new)
+        return centers_new, clusters
+
+    def _generateNewSamples(self, Xmin, boundaries, clusters, centers, N):
+        &#34;&#34;&#34;
+        Generate new synthetic samples from cluster boundaries and centers.
+
+        Parameters
+        ----------
+        Xmin : ndarray
+            Minority samples after cleaning.
+        boundaries : list of list
+            Detected boundary samples.
+        clusters : ndarray
+            Cluster labels.
+        centers : ndarray
+            Cluster centers.
+        N : int
+            Number of synthetic samples to generate.
+
+        Returns
+        -------
+        ndarray
+            Array of new synthetic samples.
+        &#34;&#34;&#34;
+        new_samples = []
+        etiqueta_cluster = np.unique(clusters)
+        cluster_map = {x: (Xmin[clusters == x], np.array(boundaries[x]), centers[x]) for x in etiqueta_cluster}
+        cluster_cycle = []
+
+        for x in etiqueta_cluster:
+            XminCl, boundariesCl, cl = cluster_map[x]
+            n_samples = int(np.round(XminCl.shape[0] * N / Xmin.shape[0]))
+            cluster_cycle.extend([(x, boundariesCl, XminCl, cl)] * n_samples)
+
+        np.random.shuffle(cluster_cycle)
+        iterable = tqdm(cluster_cycle, total=len(cluster_cycle)) if self._progress else cluster_cycle
+
+        for x, boundariesCl, XminCl, cl in iterable:
+            xl_index = np.random.randint(boundariesCl.shape[0])
+            xl = boundariesCl[xl_index]
+            yl_index = np.random.randint(XminCl.shape[0])
+            yl = XminCl[yl_index]
+
+            tries_until_change = 0
+            total_tries = 0
+            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self._euclideanDist(xl, yl) &gt; self._euclideanDist(xl, cl):
+                total_tries += 1
+                tries_until_change += 1
+                yl_index = np.random.randint(XminCl.shape[0])
+                yl = XminCl[yl_index]
+
+                if tries_until_change &gt; self._max_tries_until_change:
+                    tries_until_change = 0
+                    xl_index = np.random.randint(boundariesCl.shape[0])
+                    xl = boundariesCl[xl_index]
+                    yl_index = np.random.randint(XminCl.shape[0])
+                    yl = XminCl[yl_index]
+
+                if total_tries &gt; self._max_iter:
+                    return None
+
+            t1 = xl + np.random.rand() * (yl - xl)
+            s1 = t1 + np.random.rand() * (cl - t1)
+            new_samples.append(s1)
+
+        self._number_of_examples_generated = len(new_samples)
+        return np.array(new_samples)
+
+    def fit_resample(self, X, y):
+        &#34;&#34;&#34;
+        Fit and resample the dataset by generating synthetic minority samples.
+
+        Parameters
+        ----------
+        X : ndarray
+            Input feature matrix.
+        y : ndarray
+            Class labels.
+
+        Returns
+        -------
+        Xnew : ndarray
+            Resampled feature matrix.
+        ynew : ndarray
+            Resampled class labels.
+        &#34;&#34;&#34;
+        self._X = X
+        self._y = y
+        np.random.seed(self._random_state)
+        labels, counts = np.unique(self._y, return_counts=True)
+        minLabel = labels[np.argmin(counts)]
+        ymin = self._y[self._y == minLabel]
+        Xmin = self._X[self._y == minLabel]
+        N = np.max(counts) - np.min(counts)
+
+        Xmin_removed = self._removeNoisySamples(Xmin)
+        centers, clusters = self._clustering(Xmin_removed)
+        boundaries = self._screenBoundarySamples(Xmin_removed, clusters)
+        new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, N)
+
+        if new_samples is None or new_samples.shape[0] == 0:
+            self._status_code = 2
+            return self._X, self._y
+
+        Xnew = np.vstack((self._X, new_samples))
+        ynew = np.hstack((self._y, np.array([minLabel]*new_samples.shape[0])))
+        self._status_code = 1
+        return Xnew, ynew
+
+    @property
+    def summary(self):
+        &#34;&#34;&#34;
+        Print and return a summary of the resampling process.
+
+        Returns
+        -------
+        dict
+            Summary including key performance indicators.
+        &#34;&#34;&#34;
+        status_msg = {
+            0: &#34;Resample function not called.&#34;,
+            1: &#34;Resample Succeeded.&#34;,
+            2: &#34;Resample Failed, returning original Data.&#34;
+        }.get(self._status_code)
+
+        summary = {
+            &#34;Status code&#34;: self._status_code,
+            &#34;Status message&#34;: status_msg,
+            &#34;Number of examples removed&#34;: self._n_removed,
+            &#34;Number of clusters&#34;: self._number_of_clusters,
+            &#34;Number of examples generated&#34;: self._number_of_examples_generated,
+            &#34;Border samples percentage&#34;: self._border_samples_percent,
+        }
+
+        print(&#34;\n--- Summary ---&#34;)
+        for k, v in summary.items():
+            print(f&#34;{k}: {v}&#34;)
+        print(&#34;---------------&#34;)
+        return summary
+
+    def get_removed_samples(self, Xmin):
+        &#34;&#34;&#34;Return filtered samples (debug only).&#34;&#34;&#34;
+        if self._debug_mode:
+            return self._removeNoisySamples(Xmin)
+
+    def get_clustering(self, Xmin, solver=&#39;means&#39;):
+        &#34;&#34;&#34;Return clustering results (debug only).&#34;&#34;&#34;
+        self._solver = solver
+        if self._debug_mode:
+            return self._clustering(Xmin)
+
+    def get_screened_boundaries(self, Xmin, clusters):
+        &#34;&#34;&#34;Return detected boundaries (debug only).&#34;&#34;&#34;
+        if self._debug_mode:
+            return self._screenBoundarySamples(Xmin, clusters)
+
+    def get_generated_samples(self, Xmin, borders, clusters, centers, N):
+        &#34;&#34;&#34;Return generated synthetic samples (debug only).&#34;&#34;&#34;
+        if self._debug_mode:
+            return self._generateNewSamples(Xmin, borders, clusters, centers, N)</code></pre>
+</details>
+<div class="desc"><p>Density and Boundary-based Synthetic Minority Oversampling Technique (DAB-SMOTE).</p>
+<p>This method generates new synthetic samples for the minority class by:
+1. Removing noisy samples using IQR-based filtering.
+2. Clustering the remaining data with DBSCAN.
+3. Detecting boundary samples within clusters.
+4. Interpolating between boundary, cluster, and central points to create synthetic samples.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>r</code></strong> :&ensp;<code>float</code>, default=<code>1.5</code></dt>
+<dd>Multiplier for IQR when filtering noisy samples.</dd>
+<dt><strong><code>distMethod</code></strong> :&ensp;<code>{'euclidean', 'manhattan', 'chebyshev'}</code>, default=<code>'euclidean'</code></dt>
+<dd>Distance metric used for noise filtering.</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>int</code>, default=<code>1</code></dt>
+<dd>Standard deviation multiplier for boundary sample detection.</dd>
+<dt><strong><code>max_tries_until_change</code></strong> :&ensp;<code>int</code>, default=<code>10</code></dt>
+<dd>Maximum number of retries before changing boundary samples.</dd>
+<dt><strong><code>max_iter</code></strong> :&ensp;<code>int</code>, default=<code>10000</code></dt>
+<dd>Maximum number of total iterations allowed during sample generation.</dd>
+<dt><strong><code>random_state</code></strong> :&ensp;<code>int</code>, default=<code>42</code></dt>
+<dd>Random seed for reproducibility.</dd>
+<dt><strong><code>solver</code></strong> :&ensp;<code>{'means', 'density'}</code>, default=<code>'means'</code></dt>
+<dd>Method used to calculate cluster centers ('means' or 'density').</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
+<dd>If True, shows a progress bar during sample generation.</dd>
+<dt><strong><code>debug_mode</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
+<dd>Enables debug functions for inspecting intermediate stages.</dd>
+</dl>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>n_removed_</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of noisy samples removed.</dd>
+<dt><strong><code>number_of_clusters_</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of clusters found by DBSCAN.</dd>
+<dt><strong><code>number_of_examples_generated_</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of new synthetic examples generated.</dd>
+<dt><strong><code>border_samples_percent_</code></strong> :&ensp;<code>float</code></dt>
+<dd>Ratio of boundary samples to total samples.</dd>
+<dt><strong><code>status_code_</code></strong> :&ensp;<code>int</code></dt>
+<dd>Status code for the resampling process:
+- 0: Not executed
+- 1: Success
+- 2: Failed (returns original data)</dd>
+</dl></div>
+<h3>Instance variables</h3>
+<dl>
+<dt id="classes.DAB_SMOTE.DAB_SMOTE.summary"><code class="name">prop <span class="ident">summary</span></code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def summary(self):
+    &#34;&#34;&#34;
+    Print and return a summary of the resampling process.
+
+    Returns
+    -------
+    dict
+        Summary including key performance indicators.
+    &#34;&#34;&#34;
+    status_msg = {
+        0: &#34;Resample function not called.&#34;,
+        1: &#34;Resample Succeeded.&#34;,
+        2: &#34;Resample Failed, returning original Data.&#34;
+    }.get(self._status_code)
+
+    summary = {
+        &#34;Status code&#34;: self._status_code,
+        &#34;Status message&#34;: status_msg,
+        &#34;Number of examples removed&#34;: self._n_removed,
+        &#34;Number of clusters&#34;: self._number_of_clusters,
+        &#34;Number of examples generated&#34;: self._number_of_examples_generated,
+        &#34;Border samples percentage&#34;: self._border_samples_percent,
+    }
+
+    print(&#34;\n--- Summary ---&#34;)
+    for k, v in summary.items():
+        print(f&#34;{k}: {v}&#34;)
+    print(&#34;---------------&#34;)
+    return summary</code></pre>
+</details>
+<div class="desc"><p>Print and return a summary of the resampling process.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>Summary including key performance indicators.</dd>
+</dl></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="classes.DAB_SMOTE.DAB_SMOTE.fit_resample"><code class="name flex">
+<span>def <span class="ident">fit_resample</span></span>(<span>self, X, y)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fit_resample(self, X, y):
+    &#34;&#34;&#34;
+    Fit and resample the dataset by generating synthetic minority samples.
+
+    Parameters
+    ----------
+    X : ndarray
+        Input feature matrix.
+    y : ndarray
+        Class labels.
+
+    Returns
+    -------
+    Xnew : ndarray
+        Resampled feature matrix.
+    ynew : ndarray
+        Resampled class labels.
+    &#34;&#34;&#34;
+    self._X = X
+    self._y = y
+    np.random.seed(self._random_state)
+    labels, counts = np.unique(self._y, return_counts=True)
+    minLabel = labels[np.argmin(counts)]
+    ymin = self._y[self._y == minLabel]
+    Xmin = self._X[self._y == minLabel]
+    N = np.max(counts) - np.min(counts)
+
+    Xmin_removed = self._removeNoisySamples(Xmin)
+    centers, clusters = self._clustering(Xmin_removed)
+    boundaries = self._screenBoundarySamples(Xmin_removed, clusters)
+    new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, N)
+
+    if new_samples is None or new_samples.shape[0] == 0:
+        self._status_code = 2
+        return self._X, self._y
+
+    Xnew = np.vstack((self._X, new_samples))
+    ynew = np.hstack((self._y, np.array([minLabel]*new_samples.shape[0])))
+    self._status_code = 1
+    return Xnew, ynew</code></pre>
+</details>
+<div class="desc"><p>Fit and resample the dataset by generating synthetic minority samples.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Input feature matrix.</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Class labels.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Xnew</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Resampled feature matrix.</dd>
+<dt><strong><code>ynew</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Resampled class labels.</dd>
+</dl></div>
+</dd>
+<dt id="classes.DAB_SMOTE.DAB_SMOTE.get_clustering"><code class="name flex">
+<span>def <span class="ident">get_clustering</span></span>(<span>self, Xmin, solver='means')</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_clustering(self, Xmin, solver=&#39;means&#39;):
+    &#34;&#34;&#34;Return clustering results (debug only).&#34;&#34;&#34;
+    self._solver = solver
+    if self._debug_mode:
+        return self._clustering(Xmin)</code></pre>
+</details>
+<div class="desc"><p>Return clustering results (debug only).</p></div>
+</dd>
+<dt id="classes.DAB_SMOTE.DAB_SMOTE.get_generated_samples"><code class="name flex">
+<span>def <span class="ident">get_generated_samples</span></span>(<span>self, Xmin, borders, clusters, centers, N)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_generated_samples(self, Xmin, borders, clusters, centers, N):
+    &#34;&#34;&#34;Return generated synthetic samples (debug only).&#34;&#34;&#34;
+    if self._debug_mode:
+        return self._generateNewSamples(Xmin, borders, clusters, centers, N)</code></pre>
+</details>
+<div class="desc"><p>Return generated synthetic samples (debug only).</p></div>
+</dd>
+<dt id="classes.DAB_SMOTE.DAB_SMOTE.get_removed_samples"><code class="name flex">
+<span>def <span class="ident">get_removed_samples</span></span>(<span>self, Xmin)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_removed_samples(self, Xmin):
+    &#34;&#34;&#34;Return filtered samples (debug only).&#34;&#34;&#34;
+    if self._debug_mode:
+        return self._removeNoisySamples(Xmin)</code></pre>
+</details>
+<div class="desc"><p>Return filtered samples (debug only).</p></div>
+</dd>
+<dt id="classes.DAB_SMOTE.DAB_SMOTE.get_screened_boundaries"><code class="name flex">
+<span>def <span class="ident">get_screened_boundaries</span></span>(<span>self, Xmin, clusters)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_screened_boundaries(self, Xmin, clusters):
+    &#34;&#34;&#34;Return detected boundaries (debug only).&#34;&#34;&#34;
+    if self._debug_mode:
+        return self._screenBoundarySamples(Xmin, clusters)</code></pre>
+</details>
+<div class="desc"><p>Return detected boundaries (debug only).</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul>
+<li><a href="#dab_smotepy">dab_smote.py</a><ul>
+<li><a href="#references">References</a></li>
+<li><a href="#author">Author</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="classes" href="index.html">classes</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="classes.DAB_SMOTE.DAB_SMOTE" href="#classes.DAB_SMOTE.DAB_SMOTE">DAB_SMOTE</a></code></h4>
+<ul class="">
+<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.fit_resample" href="#classes.DAB_SMOTE.DAB_SMOTE.fit_resample">fit_resample</a></code></li>
+<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.get_clustering" href="#classes.DAB_SMOTE.DAB_SMOTE.get_clustering">get_clustering</a></code></li>
+<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.get_generated_samples" href="#classes.DAB_SMOTE.DAB_SMOTE.get_generated_samples">get_generated_samples</a></code></li>
+<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.get_removed_samples" href="#classes.DAB_SMOTE.DAB_SMOTE.get_removed_samples">get_removed_samples</a></code></li>
+<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.get_screened_boundaries" href="#classes.DAB_SMOTE.DAB_SMOTE.get_screened_boundaries">get_screened_boundaries</a></code></li>
+<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.summary" href="#classes.DAB_SMOTE.DAB_SMOTE.summary">summary</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>
