@@ -73,11 +73,14 @@ class DAB_SMOTE:
         - 2: Failed (returns original data)
     """
 
-    def __init__(self, r=1.5, distMethod="euclidean", k=1, max_tries_until_change=10,
-                 max_iter=10000, random_state=42, solver='means', progress=False, debug_mode=False):
+    def __init__(self, r: float = 1.5, distMethod: str = "euclidean", k: float = 1, max_tries_until_change: int = 10,
+                 max_iter: int = 10000, random_state: int = 42, solver: str = 'means', progress: bool = False, debug_mode: bool = False) -> None:
         self._r = r
         self._distMethod = distMethod
         self._k = k
+        self._distMethods = {"euclidean": lambda a, b: np.sqrt(np.sum((a - b) ** 2)), 
+                             "manhattan": lambda a, b: np.sum(np.abs(a - b)),
+                             "chebyshev": lambda a, b: np.max(np.abs(a - b))}
         self._max_tries_until_change = max_tries_until_change
         self._max_iter = max_iter
         self._solver = solver
@@ -90,22 +93,7 @@ class DAB_SMOTE:
         self._status_code = 0
         self._debug_mode = debug_mode
 
-    def _euclideanDist(self, xi, xmean):
-        """Compute Euclidean distance between two vectors."""
-        dist = np.sqrt(np.sum((xi - xmean)**2))
-        return dist
-
-    def _manhattanDist(self, xi, xmean):
-        """Compute Manhattan distance between two vectors."""
-        dist = np.sum(np.abs(xi - xmean))
-        return dist
-
-    def _chebyshevDist(self, xi, xmean):
-        """Compute Chebyshev distance between two vectors."""
-        dist = np.max(xi - xmean)
-        return dist
-
-    def _removeNoisySamples(self, Xmin):
+    def _removeNoisySamples(self, Xmin: np.ndarray) -> np.ndarray:
         """
         Remove noisy samples based on the interquartile range (IQR) method.
 
@@ -120,12 +108,11 @@ class DAB_SMOTE:
             Minority samples with noisy points removed.
         """
         Xmin_mean = np.mean(Xmin, axis=0)
-        distMethods = {"euclidean": self._euclideanDist, "manhattan": self._manhattanDist, "chebyshev": self._chebyshevDist}
         dists = np.zeros(np.shape(Xmin)[0])
         N = np.shape(Xmin)[0]
 
         for i in range(len(Xmin)):
-            dists[i] = distMethods[self._distMethod](Xmin[i], Xmin_mean)
+            dists[i] = self._distMethods[self._distMethod](Xmin[i], Xmin_mean)
 
         dists_sort = np.sort(dists)
         Q1 = dists_sort[int(np.round((N+1)*0.25))]
@@ -142,7 +129,7 @@ class DAB_SMOTE:
         Xmin = np.delete(Xmin, delete, axis=0)
         return Xmin
 
-    def _screenBoundarySamples(self, Xmin, clusters):
+    def _screenBoundarySamples(self, Xmin: np.ndarray, clusters: np.ndarray) -> list:
         """
         Identify boundary samples in each cluster.
 
@@ -176,7 +163,7 @@ class DAB_SMOTE:
         self._border_samples_percent = len(boundaries_totales) / Xmin.shape[0]
         return boundaries_totales
 
-    def _clustering(self, Xmin):
+    def _clustering(self, Xmin: np.ndarray) -> tuple:
         """
         Cluster minority samples using DBSCAN and compute cluster centers.
 
@@ -228,7 +215,7 @@ class DAB_SMOTE:
         centers_new = np.array(centers_new)
         return centers_new, clusters
 
-    def _generateNewSamples(self, Xmin, boundaries, clusters, centers, N):
+    def _generateNewSamples(self, Xmin: np.ndarray, boundaries: list, clusters: np.ndarray, centers: np.ndarray, N: int) -> np.ndarray:
         """
         Generate new synthetic samples from cluster boundaries and centers.
 
@@ -271,7 +258,7 @@ class DAB_SMOTE:
 
             tries_until_change = 0
             total_tries = 0
-            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self._euclideanDist(xl, yl) > self._euclideanDist(xl, cl):
+            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self._distMethods["euclidean"](xl, yl) > self._distMethods["euclidean"](xl, cl):
                 total_tries += 1
                 tries_until_change += 1
                 yl_index = np.random.randint(XminCl.shape[0])
@@ -294,7 +281,7 @@ class DAB_SMOTE:
         self._number_of_examples_generated = len(new_samples)
         return np.array(new_samples)
 
-    def fit_resample(self, X, y):
+    def fit_resample(self, X: np.ndarray, y: np.ndarray) -> tuple:
         """
         Fit and resample the dataset by generating synthetic minority samples.
 
@@ -336,7 +323,7 @@ class DAB_SMOTE:
         return Xnew, ynew
 
     @property
-    def summary(self):
+    def summary(self) -> dict:
         """
         Print and return a summary of the resampling process.
 
