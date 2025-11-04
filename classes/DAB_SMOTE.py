@@ -53,8 +53,6 @@ class DAB_SMOTE:
         Method used to calculate cluster centers ('means' or 'density').
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
-    debug_mode : bool, default=False
-        Enables debug functions for inspecting intermediate stages.
 
     Attributes
     ----------
@@ -74,7 +72,7 @@ class DAB_SMOTE:
     """
 
     def __init__(self, r: float = 1.5, distMethod: str = "euclidean", k: float = 1, max_tries_until_change: int = 10,
-                 max_iter: int = 10000, random_state: int = 42, solver: str = 'means', progress: bool = False, debug_mode: bool = False) -> None:
+                 max_iter: int = 10000, random_state: int = 42, solver: str = 'means', progress: bool = False) -> None:
         self._r = r
         self._distMethod = distMethod
         self._k = k
@@ -91,7 +89,6 @@ class DAB_SMOTE:
         self._number_of_examples_generated = 0
         self._border_samples_percent = 0
         self._status_code = 0
-        self._debug_mode = debug_mode
 
     def _removeNoisySamples(self, Xmin: np.ndarray) -> np.ndarray:
         """
@@ -352,25 +349,4 @@ class DAB_SMOTE:
             print(f"{k}: {v}")
         print("---------------")
         return summary
-
-    def get_removed_samples(self, Xmin):
-        """Return filtered samples (debug only)."""
-        if self._debug_mode:
-            return self._removeNoisySamples(Xmin)
-
-    def get_clustering(self, Xmin, solver='means'):
-        """Return clustering results (debug only)."""
-        self._solver = solver
-        if self._debug_mode:
-            return self._clustering(Xmin)
-
-    def get_screened_boundaries(self, Xmin, clusters):
-        """Return detected boundaries (debug only)."""
-        if self._debug_mode:
-            return self._screenBoundarySamples(Xmin, clusters)
-
-    def get_generated_samples(self, Xmin, borders, clusters, centers, N):
-        """Return generated synthetic samples (debug only)."""
-        if self._debug_mode:
-            return self._generateNewSamples(Xmin, borders, clusters, centers, N)
 
