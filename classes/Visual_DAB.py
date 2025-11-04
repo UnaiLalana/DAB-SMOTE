@@ -1,4 +1,4 @@
-import DAB_SMOTE
+from . import DAB_SMOTE
 import numpy as np
 
 class Visual_DAB(DAB_SMOTE.DAB_SMOTE):

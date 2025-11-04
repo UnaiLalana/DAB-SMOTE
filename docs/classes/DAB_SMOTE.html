@@ -61,7 +61,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
 <dl>
 <dt id="classes.DAB_SMOTE.DAB_SMOTE"><code class="flex name class">
 <span>class <span class="ident">DAB_SMOTE</span></span>
-<span>(</span><span>r=1.5,<br>distMethod='euclidean',<br>k=1,<br>max_tries_until_change=10,<br>max_iter=10000,<br>random_state=42,<br>solver='means',<br>progress=False,<br>debug_mode=False)</span>
+<span>(</span><span>r: float = 1.5,<br>distMethod: str = 'euclidean',<br>k: float = 1,<br>max_tries_until_change: int = 10,<br>max_iter: int = 10000,<br>random_state: int = 42,<br>solver: str = 'means',<br>progress: bool = False)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -96,8 +96,6 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         Method used to calculate cluster centers (&#39;means&#39; or &#39;density&#39;).
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
-    debug_mode : bool, default=False
-        Enables debug functions for inspecting intermediate stages.
 
     Attributes
     ----------
@@ -116,11 +114,14 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         - 2: Failed (returns original data)
     &#34;&#34;&#34;
 
-    def __init__(self, r=1.5, distMethod=&#34;euclidean&#34;, k=1, max_tries_until_change=10,
-                 max_iter=10000, random_state=42, solver=&#39;means&#39;, progress=False, debug_mode=False):
+    def __init__(self, r: float = 1.5, distMethod: str = &#34;euclidean&#34;, k: float = 1, max_tries_until_change: int = 10,
+                 max_iter: int = 10000, random_state: int = 42, solver: str = &#39;means&#39;, progress: bool = False) -&gt; None:
         self._r = r
         self._distMethod = distMethod
         self._k = k
+        self._distMethods = {&#34;euclidean&#34;: lambda a, b: np.sqrt(np.sum((a - b) ** 2)), 
+                             &#34;manhattan&#34;: lambda a, b: np.sum(np.abs(a - b)),
+                             &#34;chebyshev&#34;: lambda a, b: np.max(np.abs(a - b))}
         self._max_tries_until_change = max_tries_until_change
         self._max_iter = max_iter
         self._solver = solver
@@ -131,24 +132,8 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         self._number_of_examples_generated = 0
         self._border_samples_percent = 0
         self._status_code = 0
-        self._debug_mode = debug_mode
 
-    def _euclideanDist(self, xi, xmean):
-        &#34;&#34;&#34;Compute Euclidean distance between two vectors.&#34;&#34;&#34;
-        dist = np.sqrt(np.sum((xi - xmean)**2))
-        return dist
-
-    def _manhattanDist(self, xi, xmean):
-        &#34;&#34;&#34;Compute Manhattan distance between two vectors.&#34;&#34;&#34;
-        dist = np.sum(np.abs(xi - xmean))
-        return dist
-
-    def _chebyshevDist(self, xi, xmean):
-        &#34;&#34;&#34;Compute Chebyshev distance between two vectors.&#34;&#34;&#34;
-        dist = np.max(xi - xmean)
-        return dist
-
-    def _removeNoisySamples(self, Xmin):
+    def _removeNoisySamples(self, Xmin: np.ndarray) -&gt; np.ndarray:
         &#34;&#34;&#34;
         Remove noisy samples based on the interquartile range (IQR) method.
 
@@ -163,12 +148,11 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
             Minority samples with noisy points removed.
         &#34;&#34;&#34;
         Xmin_mean = np.mean(Xmin, axis=0)
-        distMethods = {&#34;euclidean&#34;: self._euclideanDist, &#34;manhattan&#34;: self._manhattanDist, &#34;chebyshev&#34;: self._chebyshevDist}
         dists = np.zeros(np.shape(Xmin)[0])
         N = np.shape(Xmin)[0]
 
         for i in range(len(Xmin)):
-            dists[i] = distMethods[self._distMethod](Xmin[i], Xmin_mean)
+            dists[i] = self._distMethods[self._distMethod](Xmin[i], Xmin_mean)
 
         dists_sort = np.sort(dists)
         Q1 = dists_sort[int(np.round((N+1)*0.25))]
@@ -185,7 +169,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         Xmin = np.delete(Xmin, delete, axis=0)
         return Xmin
 
-    def _screenBoundarySamples(self, Xmin, clusters):
+    def _screenBoundarySamples(self, Xmin: np.ndarray, clusters: np.ndarray) -&gt; list:
         &#34;&#34;&#34;
         Identify boundary samples in each cluster.
 
@@ -219,7 +203,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         self._border_samples_percent = len(boundaries_totales) / Xmin.shape[0]
         return boundaries_totales
 
-    def _clustering(self, Xmin):
+    def _clustering(self, Xmin: np.ndarray) -&gt; tuple:
         &#34;&#34;&#34;
         Cluster minority samples using DBSCAN and compute cluster centers.
 
@@ -271,7 +255,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         centers_new = np.array(centers_new)
         return centers_new, clusters
 
-    def _generateNewSamples(self, Xmin, boundaries, clusters, centers, N):
+    def _generateNewSamples(self, Xmin: np.ndarray, boundaries: list, clusters: np.ndarray, centers: np.ndarray, N: int) -&gt; np.ndarray | None:
         &#34;&#34;&#34;
         Generate new synthetic samples from cluster boundaries and centers.
 
@@ -314,7 +298,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
 
             tries_until_change = 0
             total_tries = 0
-            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self._euclideanDist(xl, yl) &gt; self._euclideanDist(xl, cl):
+            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self._distMethods[&#34;euclidean&#34;](xl, yl) &gt; self._distMethods[&#34;euclidean&#34;](xl, cl):
                 total_tries += 1
                 tries_until_change += 1
                 yl_index = np.random.randint(XminCl.shape[0])
@@ -337,7 +321,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         self._number_of_examples_generated = len(new_samples)
         return np.array(new_samples)
 
-    def fit_resample(self, X, y):
+    def fit_resample(self, X: np.ndarray, y: np.ndarray) -&gt; tuple:
         &#34;&#34;&#34;
         Fit and resample the dataset by generating synthetic minority samples.
 
@@ -367,7 +351,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         Xmin_removed = self._removeNoisySamples(Xmin)
         centers, clusters = self._clustering(Xmin_removed)
         boundaries = self._screenBoundarySamples(Xmin_removed, clusters)
-        new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, N)
+        new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, int(N))
 
         if new_samples is None or new_samples.shape[0] == 0:
             self._status_code = 2
@@ -379,7 +363,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         return Xnew, ynew
 
     @property
-    def summary(self):
+    def summary(self) -&gt; dict:
         &#34;&#34;&#34;
         Print and return a summary of the resampling process.
 
@@ -407,28 +391,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         for k, v in summary.items():
             print(f&#34;{k}: {v}&#34;)
         print(&#34;---------------&#34;)
-        return summary
-
-    def get_removed_samples(self, Xmin):
-        &#34;&#34;&#34;Return filtered samples (debug only).&#34;&#34;&#34;
-        if self._debug_mode:
-            return self._removeNoisySamples(Xmin)
-
-    def get_clustering(self, Xmin, solver=&#39;means&#39;):
-        &#34;&#34;&#34;Return clustering results (debug only).&#34;&#34;&#34;
-        self._solver = solver
-        if self._debug_mode:
-            return self._clustering(Xmin)
-
-    def get_screened_boundaries(self, Xmin, clusters):
-        &#34;&#34;&#34;Return detected boundaries (debug only).&#34;&#34;&#34;
-        if self._debug_mode:
-            return self._screenBoundarySamples(Xmin, clusters)
-
-    def get_generated_samples(self, Xmin, borders, clusters, centers, N):
-        &#34;&#34;&#34;Return generated synthetic samples (debug only).&#34;&#34;&#34;
-        if self._debug_mode:
-            return self._generateNewSamples(Xmin, borders, clusters, centers, N)</code></pre>
+        return summary</code></pre>
 </details>
 <div class="desc"><p>Density and Boundary-based Synthetic Minority Oversampling Technique (DAB-SMOTE).</p>
 <p>This method generates new synthetic samples for the minority class by:
@@ -454,8 +417,6 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
 <dd>Method used to calculate cluster centers ('means' or 'density').</dd>
 <dt><strong><code>progress</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
 <dd>If True, shows a progress bar during sample generation.</dd>
-<dt><strong><code>debug_mode</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
-<dd>Enables debug functions for inspecting intermediate stages.</dd>
 </dl>
 <h2 id="attributes">Attributes</h2>
 <dl>
@@ -473,16 +434,20 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
 - 1: Success
 - 2: Failed (returns original data)</dd>
 </dl></div>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="classes.Visual_DAB.Visual_DAB" href="Visual_DAB.html#classes.Visual_DAB.Visual_DAB">Visual_DAB</a></li>
+</ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="classes.DAB_SMOTE.DAB_SMOTE.summary"><code class="name">prop <span class="ident">summary</span></code></dt>
+<dt id="classes.DAB_SMOTE.DAB_SMOTE.summary"><code class="name">prop <span class="ident">summary</span> : dict</code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def summary(self):
+def summary(self) -&gt; dict:
     &#34;&#34;&#34;
     Print and return a summary of the resampling process.
 
@@ -523,14 +488,14 @@ def summary(self):
 <h3>Methods</h3>
 <dl>
 <dt id="classes.DAB_SMOTE.DAB_SMOTE.fit_resample"><code class="name flex">
-<span>def <span class="ident">fit_resample</span></span>(<span>self, X, y)</span>
+<span>def <span class="ident">fit_resample</span></span>(<span>self, X: numpy.ndarray, y: numpy.ndarray) ‑> tuple</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fit_resample(self, X, y):
+<pre><code class="python">def fit_resample(self, X: np.ndarray, y: np.ndarray) -&gt; tuple:
     &#34;&#34;&#34;
     Fit and resample the dataset by generating synthetic minority samples.
 
@@ -560,7 +525,7 @@ def summary(self):
     Xmin_removed = self._removeNoisySamples(Xmin)
     centers, clusters = self._clustering(Xmin_removed)
     boundaries = self._screenBoundarySamples(Xmin_removed, clusters)
-    new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, N)
+    new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, int(N))
 
     if new_samples is None or new_samples.shape[0] == 0:
         self._status_code = 2
@@ -586,67 +551,6 @@ def summary(self):
 <dt><strong><code>ynew</code></strong> :&ensp;<code>ndarray</code></dt>
 <dd>Resampled class labels.</dd>
 </dl></div>
-</dd>
-<dt id="classes.DAB_SMOTE.DAB_SMOTE.get_clustering"><code class="name flex">
-<span>def <span class="ident">get_clustering</span></span>(<span>self, Xmin, solver='means')</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_clustering(self, Xmin, solver=&#39;means&#39;):
-    &#34;&#34;&#34;Return clustering results (debug only).&#34;&#34;&#34;
-    self._solver = solver
-    if self._debug_mode:
-        return self._clustering(Xmin)</code></pre>
-</details>
-<div class="desc"><p>Return clustering results (debug only).</p></div>
-</dd>
-<dt id="classes.DAB_SMOTE.DAB_SMOTE.get_generated_samples"><code class="name flex">
-<span>def <span class="ident">get_generated_samples</span></span>(<span>self, Xmin, borders, clusters, centers, N)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_generated_samples(self, Xmin, borders, clusters, centers, N):
-    &#34;&#34;&#34;Return generated synthetic samples (debug only).&#34;&#34;&#34;
-    if self._debug_mode:
-        return self._generateNewSamples(Xmin, borders, clusters, centers, N)</code></pre>
-</details>
-<div class="desc"><p>Return generated synthetic samples (debug only).</p></div>
-</dd>
-<dt id="classes.DAB_SMOTE.DAB_SMOTE.get_removed_samples"><code class="name flex">
-<span>def <span class="ident">get_removed_samples</span></span>(<span>self, Xmin)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_removed_samples(self, Xmin):
-    &#34;&#34;&#34;Return filtered samples (debug only).&#34;&#34;&#34;
-    if self._debug_mode:
-        return self._removeNoisySamples(Xmin)</code></pre>
-</details>
-<div class="desc"><p>Return filtered samples (debug only).</p></div>
-</dd>
-<dt id="classes.DAB_SMOTE.DAB_SMOTE.get_screened_boundaries"><code class="name flex">
-<span>def <span class="ident">get_screened_boundaries</span></span>(<span>self, Xmin, clusters)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_screened_boundaries(self, Xmin, clusters):
-    &#34;&#34;&#34;Return detected boundaries (debug only).&#34;&#34;&#34;
-    if self._debug_mode:
-        return self._screenBoundarySamples(Xmin, clusters)</code></pre>
-</details>
-<div class="desc"><p>Return detected boundaries (debug only).</p></div>
 </dd>
 </dl>
 </dd>
@@ -675,10 +579,6 @@ def summary(self):
 <h4><code><a title="classes.DAB_SMOTE.DAB_SMOTE" href="#classes.DAB_SMOTE.DAB_SMOTE">DAB_SMOTE</a></code></h4>
 <ul class="">
 <li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.fit_resample" href="#classes.DAB_SMOTE.DAB_SMOTE.fit_resample">fit_resample</a></code></li>
-<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.get_clustering" href="#classes.DAB_SMOTE.DAB_SMOTE.get_clustering">get_clustering</a></code></li>
-<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.get_generated_samples" href="#classes.DAB_SMOTE.DAB_SMOTE.get_generated_samples">get_generated_samples</a></code></li>
-<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.get_removed_samples" href="#classes.DAB_SMOTE.DAB_SMOTE.get_removed_samples">get_removed_samples</a></code></li>
-<li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.get_screened_boundaries" href="#classes.DAB_SMOTE.DAB_SMOTE.get_screened_boundaries">get_screened_boundaries</a></code></li>
 <li><code><a title="classes.DAB_SMOTE.DAB_SMOTE.summary" href="#classes.DAB_SMOTE.DAB_SMOTE.summary">summary</a></code></li>
 </ul>
 </li>
