@@ -215,7 +215,7 @@ class DAB_SMOTE:
         centers_new = np.array(centers_new)
         return centers_new, clusters
 
-    def _generateNewSamples(self, Xmin: np.ndarray, boundaries: list, clusters: np.ndarray, centers: np.ndarray, N: int) -> np.ndarray:
+    def _generateNewSamples(self, Xmin: np.ndarray, boundaries: list, clusters: np.ndarray, centers: np.ndarray, N: int) -> np.ndarray | None:
         """
         Generate new synthetic samples from cluster boundaries and centers.
 
@@ -311,7 +311,7 @@ class DAB_SMOTE:
         Xmin_removed = self._removeNoisySamples(Xmin)
         centers, clusters = self._clustering(Xmin_removed)
         boundaries = self._screenBoundarySamples(Xmin_removed, clusters)
-        new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, N)
+        new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, int(N))
 
         if new_samples is None or new_samples.shape[0] == 0:
             self._status_code = 2
