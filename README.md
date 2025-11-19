@@ -17,30 +17,58 @@ DAB-SMOTE combines noise detection techniques, density-based clustering (DBSCAN)
 - `classes/`
     - `DAB_SMOTE.py`: Main implementation of the DAB-SMOTE method.
     - `dataset.py`: Utilities for reading datasets in .dat format.
+    - `Visual_DAB.py`: A visualization and debugging extension of the DAB_SMOTE
 - `data/`
     - `benchmarks/`: Classic imbalanced datasets for benchmarking.
     - `initial_test/`: Example dataset for quick tests.
 - `notebooks/`
     - `InitialTest.ipynb`: Basic usage and visualization example.
     - `DensityBasedCenters.ipynb`: Advanced example with density-based centers.
-    - `Visualization.ipynb`: Visualization tools.
+    - `Visualization.ipynb`: Visualization notebook.
     - `benchmarks/InitialBenchmarks.ipynb`: Simple benchmarking
+- `docs/`
+    - `DAB_SMOTE.html`: DAB_SMOTE class documentation.
+    - `dataset.html`: Dataset class documentation.
+    - `index.html`: Main index page.
+    - `Visual_DAB.html`: Visual_DAB class documentation.
+- `tests/`
+    - `test_dab_smote.py`: Test cases for DAB-SMOTE class.
+    - `test_visual_dab.py`: Test cases for Visual-DAB class.
 
-## Installation and Dependencies
+## Installation and Environment (using **uv**)
 
-It is recommended to use a virtual environment. The main dependencies are:
+This project uses **uv** to manage environments and dependencies
+efficiently.
 
-- Python >= 3.8
-- numpy
-- scikit-learn
-- matplotlib
-- tqdm
-- pandas
+### 1. Sync the environment
 
-Quick installation:
 
-```powershell
-pip install numpy scikit-learn matplotlib tqdm pandas
+``` bash
+uv sync
+```
+
+This command will:
+
+-   Automatically create a virtual environment (`.venv/`) if it does not
+    exist.
+-   Install all dependencies specified in `pyproject.toml`.
+-   Generate/update the `uv.lock` lockfile.
+
+### 2. Activate the environment
+
+``` bash
+source .venv/bin/activate   # Linux / macOS
+.venv\Scripts\activate      # Windows PowerShell
+```
+
+### 3. Run tests
+```bash
+uv run python -m pytest -v
+```
+And test coverage with:
+
+``` bash
+uv run python -m pytest -v  --cov=classes --cov-config=pyproject.toml
 ```
 
 ## Basic Usage Example
@@ -68,7 +96,6 @@ For complete examples and visualizations, see the notebooks in the `notebooks/` 
 - `k`: Borderline factor for borderline sample detection.
 - `solver`: Centroid strategy (`'means'` for mean, `'density'` for densest point).
 - `progress`: Shows progress bar.
-- `debug_mode`: Returns intermediate information for analysis.
 
 ## Datasets
 The benchmarking datasets are in `data/benchmarks/` and follow the .dat format. Use the utilities in `classes/dataset.py` to read them.
