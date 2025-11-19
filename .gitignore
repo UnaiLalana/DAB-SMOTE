@@ -4,3 +4,4 @@ data/benchmarks/
 venv/
 env/
 .venv/
+.coverage

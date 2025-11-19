@@ -10,6 +10,7 @@ dependencies = [
     "pandas>=2.3.3",
     "pdoc3>=0.11.6",
     "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
     "scikit-learn>=1.7.2",
     "statds>=1.1.7",
     "tqdm>=4.67.1",
@@ -17,3 +18,9 @@ dependencies = [
 
 [dependency-groups]
 dev = []
+
+[tool.coverage.run]
+omit = [
+    "classes/dataset.py",
+    "__init__.py"
+]

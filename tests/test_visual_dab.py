@@ -7,6 +7,17 @@ from classes.DAB_SMOTE import DAB_SMOTE
 import numpy as np
 
 def test_visual_dab_methods_work():
+    """
+    Test if Visual_DAB methods execute without errors and return expected structures.
+
+    This test runs the pipeline of methods:
+    1. get_removed_samples
+    2. get_clustering
+    3. get_screened_boundaries
+    4. get_generated_samples
+
+    And asserts that the outputs are of the correct types (ndarrays or lists).
+    """
     X = np.random.rand(30, 2)
     visual = Visual_DAB()
 
@@ -21,6 +32,13 @@ def test_visual_dab_methods_work():
     assert new_samples is None or isinstance(new_samples, np.ndarray)
 
 def test_visual_dab_returns_correct_types():
+    """
+    Test if Visual_DAB methods return objects of the correct type.
+
+    Specifically checks:
+    1. get_removed_samples returns a numpy array.
+    2. get_clustering returns two numpy arrays (centers and clusters).
+    """
     X = np.random.rand(10, 3)
     visual = Visual_DAB()
 
@@ -32,6 +50,12 @@ def test_visual_dab_returns_correct_types():
     assert isinstance(clusters, np.ndarray)
 
 def test_reproducibility_with_random_state():
+    """
+    Test if DAB_SMOTE results are reproducible when a random_state is provided.
+
+    This test initializes two DAB_SMOTE instances with the same random_state
+    and verifies that fit_resample produces identical X and y arrays.
+    """
     X = np.random.rand(50, 2)
     y = np.array([0]*40 + [1]*10)
 

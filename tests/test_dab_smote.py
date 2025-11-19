@@ -7,6 +7,13 @@ from classes.DAB_SMOTE import DAB_SMOTE
 import numpy as np
 
 def test_fit_resample_balances_classes():
+    """
+    Test if fit_resample balances the classes and increases the number of samples.
+
+    This test verifies that:
+    1. The number of samples in the minority class equals the majority class after resampling.
+    2. The total number of samples increases.
+    """
     X = np.random.rand(100, 2)
     y = np.array([0]*90 + [1]*10)
 
@@ -18,6 +25,12 @@ def test_fit_resample_balances_classes():
     assert X_res.shape[0] > X.shape[0], "Number of samples should increase after resampling"
 
 def test_remove_noisy_samples_removes_outliers():
+    """
+    Test if _removeNoisySamples correctly identifies and removes outliers.
+
+    This test creates a dataset with a clear outlier and asserts that the
+    filtered dataset has fewer samples than the original one.
+    """
     X = np.vstack([np.random.normal(0, 1, (20, 2)), np.array([[10, 10]])])
     dab = DAB_SMOTE()
 
@@ -25,6 +38,13 @@ def test_remove_noisy_samples_removes_outliers():
     assert X_filtered.shape[0] < X.shape[0], "Noisy sample should be removed"
 
 def test_clustering_returns_valid_clusters():
+    """
+    Test if _clustering returns valid cluster centers and assignments.
+
+    This test checks that:
+    1. The cluster centers have the correct dimensions.
+    2. Every sample is assigned to a valid cluster index (>= 0).
+    """
     X = np.random.rand(50, 2)
     dab = DAB_SMOTE()
 
@@ -36,6 +56,14 @@ def test_clustering_returns_valid_clusters():
 
 
 def test_generate_new_samples_creates_points():
+    """
+    Test if _generateNewSamples creates new synthetic samples.
+
+    This test verifies that:
+    1. The function returns a non-None result.
+    2. The returned array has samples (rows > 0).
+    3. The number of features remains consistent with the input.
+    """
     X = np.random.rand(20, 2)
     dab = DAB_SMOTE()
     centers, clusters = dab._clustering(X)
@@ -47,6 +75,14 @@ def test_generate_new_samples_creates_points():
     assert new_samples.shape[1] == X.shape[1]
 
 def test_summary_reflects_process_status():
+    """
+    Test if the summary property contains expected keys and values.
+
+    This test ensures that after fitting, the summary dictionary includes:
+    1. A "Status code".
+    2. Non-negative "Number of clusters".
+    3. Non-negative "Number of examples generated".
+    """
     X = np.random.rand(100, 2)
     y = np.array([0]*80 + [1]*20)
     dab = DAB_SMOTE()
