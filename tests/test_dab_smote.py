@@ -93,4 +93,71 @@ def test_summary_reflects_process_status():
     assert summary["Number of clusters"] >= 0
     assert summary["Number of examples generated"] >= 0
 
+def test_clustering_density_solver():
+    """
+    Test that _clustering works correctly when using the 'density' solver.
 
+    Ensures that:
+    1. Density-based centers are computed.
+    2. The output dimensions are valid.
+    """
+    X = np.random.rand(50, 2)
+    dab = DAB_SMOTE(solver="density")
+
+    centers, clusters = dab._clustering(X)
+
+    assert centers.ndim == 2
+    assert centers.shape[1] == X.shape[1]
+    assert len(clusters) == len(X)
+
+def test_fit_resample_returns_original_when_generation_fails_safe():
+    """
+    Force _generateNewSamples to fail (return None) so fit_resample
+    returns the original X and y.
+
+    Uses enough minority samples to avoid IndexError in _removeNoisySamples.
+    """
+    X = np.random.rand(30, 2)
+    y = np.array([0]*25 + [1]*5)
+
+    dab = DAB_SMOTE()
+
+    dab._generateNewSamples = lambda *args, **kwargs: None
+
+    X_res, y_res = dab.fit_resample(X, y)
+
+    assert np.allclose(X_res, X)
+    assert np.array_equal(y_res, y)
+
+def test_clustering_all_noise_assignment():
+    """
+    Test _clustering correctly assigns noise points to closest clusters.
+    """
+    cluster1 = np.random.rand(10, 2) + 0
+    cluster2 = np.random.rand(10, 2) + 5
+    noise = np.array([[20, 20], [25, 25]])
+
+    X = np.vstack([cluster1, cluster2, noise])
+    dab = DAB_SMOTE()
+    
+    centers, clusters = dab._clustering(X)
+
+    assert np.all(clusters >= 0)
+    
+    assert clusters[-2] in clusters[:-2]
+    assert clusters[-1] in clusters[:-2]
+
+def test_generate_new_samples_returns_none_when_max_iter_exceeded():
+    """
+    Test _generateNewSamples returns None if max_iter is exceeded.
+    """
+    X = np.random.rand(5, 2)
+    clusters = np.zeros(5, dtype=int)
+    centers = np.mean(X, axis=0).reshape(1, -1)
+    boundaries = [X.copy()]
+
+    dab = DAB_SMOTE(max_iter=1)
+    
+    result = dab._generateNewSamples(X, boundaries, clusters, centers, N=10)
+
+    assert result is None
