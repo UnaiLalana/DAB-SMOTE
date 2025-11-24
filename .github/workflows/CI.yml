@@ -20,11 +20,4 @@ jobs:
       - name: test
         run: uv run pytest tests/ -vv --cov=classes --cov-config=pyproject.toml
       - name: doc
-        run: uv run pdoc3 --html classes --output-dir docs/classes --force
-      - name: Commit docs
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/classes
-          git commit -m "Update docs"
-          git push origin master
+        run: uv run pdoc3 --html classes --output-dir docs --force
