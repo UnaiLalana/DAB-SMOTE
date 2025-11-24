@@ -26,7 +26,7 @@ def test_fit_resample_balances_classes():
 
 def test_remove_noisy_samples_removes_outliers():
     """
-    Test if _removeNoisySamples correctly identifies and removes outliers.
+    Test if _remove_noisy_samples correctly identifies and removes outliers.
 
     This test creates a dataset with a clear outlier and asserts that the
     filtered dataset has fewer samples than the original one.
@@ -34,7 +34,7 @@ def test_remove_noisy_samples_removes_outliers():
     X = np.vstack([np.random.normal(0, 1, (20, 2)), np.array([[10, 10]])])
     dab = DAB_SMOTE()
 
-    X_filtered = dab._removeNoisySamples(X)
+    X_filtered = dab._remove_noisy_samples(X)
     assert X_filtered.shape[0] < X.shape[0], "Noisy sample should be removed"
 
 def test_clustering_returns_valid_clusters():
@@ -57,7 +57,7 @@ def test_clustering_returns_valid_clusters():
 
 def test_generate_new_samples_creates_points():
     """
-    Test if _generateNewSamples creates new synthetic samples.
+    Test if _generate_new_samples creates new synthetic samples.
 
     This test verifies that:
     1. The function returns a non-None result.
@@ -67,9 +67,9 @@ def test_generate_new_samples_creates_points():
     X = np.random.rand(20, 2)
     dab = DAB_SMOTE()
     centers, clusters = dab._clustering(X)
-    boundaries = dab._screenBoundarySamples(X, clusters)
+    boundaries = dab._screen_boundary_samples(X, clusters)
 
-    new_samples = dab._generateNewSamples(X, boundaries, clusters, centers, N=10)
+    new_samples = dab._generate_new_samples(X, boundaries, clusters, centers, N=10)
     assert new_samples is not None
     assert new_samples.shape[0] > 0
     assert new_samples.shape[1] == X.shape[1]
@@ -112,17 +112,17 @@ def test_clustering_density_solver():
 
 def test_fit_resample_returns_original_when_generation_fails_safe():
     """
-    Force _generateNewSamples to fail (return None) so fit_resample
+    Force _generate_new_samples to fail (return None) so fit_resample
     returns the original X and y.
 
-    Uses enough minority samples to avoid IndexError in _removeNoisySamples.
+    Uses enough minority samples to avoid IndexError in _remove_noisy_samples.
     """
     X = np.random.rand(30, 2)
     y = np.array([0]*25 + [1]*5)
 
     dab = DAB_SMOTE()
 
-    dab._generateNewSamples = lambda *args, **kwargs: None
+    dab._generate_new_samples = lambda *args, **kwargs: None
 
     X_res, y_res = dab.fit_resample(X, y)
 
@@ -149,7 +149,7 @@ def test_clustering_all_noise_assignment():
 
 def test_generate_new_samples_returns_none_when_max_iter_exceeded():
     """
-    Test _generateNewSamples returns None if max_iter is exceeded.
+    Test _generate_new_samples returns None if max_iter is exceeded.
     """
     X = np.random.rand(5, 2)
     clusters = np.zeros(5, dtype=int)
@@ -158,6 +158,6 @@ def test_generate_new_samples_returns_none_when_max_iter_exceeded():
 
     dab = DAB_SMOTE(max_iter=1)
     
-    result = dab._generateNewSamples(X, boundaries, clusters, centers, N=10)
+    result = dab._generate_new_samples(X, boundaries, clusters, centers, N=10)
 
     assert result is None

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>classes.DAB_SMOTE API documentation</title>
-<meta name="description" content="dab_smote.py
+<meta name="description" content="DAB_SMOTE.py
 …">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -37,7 +37,7 @@ el.replaceWith(d);
 <h1 class="title">Module <code>classes.DAB_SMOTE</code></h1>
 </header>
 <section id="section-intro">
-<h1 id="dab_smotepy">dab_smote.py</h1>
+<h1 id="dab_smotepy">DAB_SMOTE.py</h1>
 <p>Implementation of DAB-SMOTE (Density Aware Borderline Synthetic Minority Oversampling Technique).</p>
 <p>This module provides a data-level resampling approach designed to address class imbalance problems
 by generating synthetic samples for the minority class. It combines boundary detection,
@@ -45,7 +45,8 @@ noise removal, and density-based clustering to improve the representativeness of
 <h2 id="references">References</h2>
 <ul>
 <li>U. Lalana and J. A. S. Delgado, ‘Estudio, análisis e implementación de FSDR-SMOTE,
-técnica de sobremuestreo para problemas de clasificación desbalanceados’, Universidad Publica de Navarra.</li>
+técnica de sobremuestreo para problemas de clasificación desbalanceados’,
+Universidad Publica de Navarra.</li>
 </ul>
 <h2 id="author">Author</h2>
 <p>Unai Lalana</p>
@@ -61,7 +62,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
 <dl>
 <dt id="classes.DAB_SMOTE.DAB_SMOTE"><code class="flex name class">
 <span>class <span class="ident">DAB_SMOTE</span></span>
-<span>(</span><span>r: float = 1.5,<br>distMethod: str = 'euclidean',<br>k: float = 1,<br>max_tries_until_change: int = 10,<br>max_iter: int = 10000,<br>random_state: int = 42,<br>solver: str = 'means',<br>progress: bool = False)</span>
+<span>(</span><span>r: float = 1.5,<br>dist_method: str = 'euclidean',<br>k: float = 1,<br>max_tries_until_change: int = 10,<br>max_iter: int = 10000,<br>random_state: int = 42,<br>solver: str = 'means',<br>progress: bool = False)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -82,7 +83,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
     ----------
     r : float, default=1.5
         Multiplier for IQR when filtering noisy samples.
-    distMethod : {&#39;euclidean&#39;, &#39;manhattan&#39;, &#39;chebyshev&#39;}, default=&#39;euclidean&#39;
+    dist_method : {&#39;euclidean&#39;, &#39;manhattan&#39;, &#39;chebyshev&#39;}, default=&#39;euclidean&#39;
         Distance metric used for noise filtering.
     k : int, default=1
         Standard deviation multiplier for boundary sample detection.
@@ -114,14 +115,25 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         - 2: Failed (returns original data)
     &#34;&#34;&#34;
 
-    def __init__(self, r: float = 1.5, distMethod: str = &#34;euclidean&#34;, k: float = 1, max_tries_until_change: int = 10,
-                 max_iter: int = 10000, random_state: int = 42, solver: str = &#39;means&#39;, progress: bool = False) -&gt; None:
+    def __init__(
+        self,
+        r: float = 1.5,
+        dist_method: str = &#34;euclidean&#34;,
+        k: float = 1,
+        max_tries_until_change: int = 10,
+        max_iter: int = 10000,
+        random_state: int = 42,
+        solver: str = &#34;means&#34;,
+        progress: bool = False,
+    ) -&gt; None:
         self._r = r
-        self._distMethod = distMethod
+        self._dist_method = dist_method
         self._k = k
-        self._distMethods = {&#34;euclidean&#34;: lambda a, b: np.sqrt(np.sum((a - b) ** 2)), 
-                             &#34;manhattan&#34;: lambda a, b: np.sum(np.abs(a - b)),
-                             &#34;chebyshev&#34;: lambda a, b: np.max(np.abs(a - b))}
+        self._dist_methods = {
+            &#34;euclidean&#34;: lambda a, b: np.sqrt(np.sum((a - b) ** 2)),
+            &#34;manhattan&#34;: lambda a, b: np.sum(np.abs(a - b)),
+            &#34;chebyshev&#34;: lambda a, b: np.max(np.abs(a - b)),
+        }
         self._max_tries_until_change = max_tries_until_change
         self._max_iter = max_iter
         self._solver = solver
@@ -133,49 +145,49 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         self._border_samples_percent = 0
         self._status_code = 0
 
-    def _removeNoisySamples(self, Xmin: np.ndarray) -&gt; np.ndarray:
+    def _remove_noisy_samples(self, X_min: np.ndarray) -&gt; np.ndarray:
         &#34;&#34;&#34;
         Remove noisy samples based on the interquartile range (IQR) method.
 
         Parameters
         ----------
-        Xmin : ndarray of shape (n_samples, n_features)
+        X_min : ndarray of shape (n_samples, n_features)
             Minority class samples.
 
         Returns
         -------
-        Xmin : ndarray
+        X_min : ndarray
             Minority samples with noisy points removed.
         &#34;&#34;&#34;
-        Xmin_mean = np.mean(Xmin, axis=0)
-        dists = np.zeros(np.shape(Xmin)[0])
-        N = np.shape(Xmin)[0]
+        X_min_mean = np.mean(X_min, axis=0)
+        dists = np.zeros(np.shape(X_min)[0])
+        N = np.shape(X_min)[0]
 
-        for i in range(len(Xmin)):
-            dists[i] = self._distMethods[self._distMethod](Xmin[i], Xmin_mean)
+        for i, x in enumerate(X_min):
+            dists[i] = self._dist_methods[self._dist_method](x, X_min_mean)
 
         dists_sort = np.sort(dists)
-        Q1 = dists_sort[int(np.round((N+1)*0.25))]
-        Q3 = dists_sort[int(np.round((N+1)*0.75))]
+        Q1 = dists_sort[int(np.round((N + 1) * 0.25))]
+        Q3 = dists_sort[int(np.round((N + 1) * 0.75))]
         IQR = Q3 - Q1
         ub = Q1 + self._r * IQR
 
         delete = []
-        for i in range(len(dists)):
-            if dists[i] &gt; ub:
+        for i, dist in enumerate(dists):
+            if dist &gt; ub:
                 delete.append(i)
 
         self._n_removed = len(delete)
-        Xmin = np.delete(Xmin, delete, axis=0)
-        return Xmin
+        X_min = np.delete(X_min, delete, axis=0)
+        return X_min
 
-    def _screenBoundarySamples(self, Xmin: np.ndarray, clusters: np.ndarray) -&gt; list:
+    def _screen_boundary_samples(self, X_min: np.ndarray, clusters: np.ndarray) -&gt; list:
         &#34;&#34;&#34;
         Identify boundary samples in each cluster.
 
         Parameters
         ----------
-        Xmin : ndarray
+        X_min : ndarray
             Minority class samples.
         clusters : ndarray
             Cluster labels assigned by DBSCAN.
@@ -190,26 +202,26 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         boundaries_totales = []
 
         for x in etiqueta_cluster:
-            XminCl = Xmin[clusters == x]
-            ajs = np.mean(XminCl, axis=0)
-            ojs = np.std(XminCl, axis=0)
+            X_min_cl = X_min[clusters == x]
+            ajs = np.mean(X_min_cl, axis=0)
+            ojs = np.std(X_min_cl, axis=0)
             boundaries = []
-            for j in range(XminCl.shape[1]):
-                for i in range(XminCl.shape[0]):
-                    if np.abs(XminCl[i, j] - ajs[j]) &gt; (ojs[j] * k):
-                        boundaries.append(XminCl[i])
+            for j in range(X_min_cl.shape[1]):
+                for i in range(X_min_cl.shape[0]):
+                    if np.abs(X_min_cl[i, j] - ajs[j]) &gt; (ojs[j] * k):
+                        boundaries.append(X_min_cl[i])
             boundaries_totales.append(boundaries)
 
-        self._border_samples_percent = len(boundaries_totales) / Xmin.shape[0]
+        self._border_samples_percent = len(boundaries_totales) / X_min.shape[0]
         return boundaries_totales
 
-    def _clustering(self, Xmin: np.ndarray) -&gt; tuple:
+    def _clustering(self, X_min: np.ndarray) -&gt; tuple:
         &#34;&#34;&#34;
         Cluster minority samples using DBSCAN and compute cluster centers.
 
         Parameters
         ----------
-        Xmin : ndarray
+        X_min : ndarray
             Minority class samples.
 
         Returns
@@ -219,7 +231,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         clusters : ndarray
             Cluster labels assigned to each sample.
         &#34;&#34;&#34;
-        db = DBSCAN(eps=0.75, min_samples=10).fit(Xmin)
+        db = DBSCAN(eps=0.75, min_samples=10).fit(X_min)
         clusters = db.labels_
 
         noise_indices = np.where(clusters == -1)[0]
@@ -227,7 +239,9 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
 
         if len(noise_indices) &gt; 0:
             if len(cluster_indices) &gt; 0:
-                closest_clusters, _ = pairwise_distances_argmin_min(Xmin[noise_indices], Xmin[cluster_indices])
+                closest_clusters, _ = pairwise_distances_argmin_min(
+                    X_min[noise_indices], X_min[cluster_indices]
+                )
                 for noise_idx, closest_idx in zip(noise_indices, closest_clusters):
                     clusters[noise_idx] = clusters[cluster_indices[closest_idx]]
             else:
@@ -237,16 +251,18 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         self._number_of_clusters = len(unique_clusters)
         centers_new = []
 
-        if self._solver == &#39;means&#39;:
+        if self._solver == &#34;means&#34;:
             for cluster in unique_clusters:
-                cluster_points = Xmin[clusters == cluster]
+                cluster_points = X_min[clusters == cluster]
                 center = cluster_points.mean(axis=0)
                 centers_new.append(center)
-        elif self._solver == &#39;density&#39;:
+        elif self._solver == &#34;density&#34;:
             for cluster in unique_clusters:
-                cluster_points = Xmin[clusters == cluster]
+                cluster_points = X_min[clusters == cluster]
                 nbrs = NearestNeighbors(radius=0.75).fit(cluster_points)
-                radii_neighbors = nbrs.radius_neighbors(cluster_points, return_distance=False)
+                radii_neighbors = nbrs.radius_neighbors(
+                    cluster_points, return_distance=False
+                )
                 neighbor_counts = np.array([len(neigh) for neigh in radii_neighbors])
                 most_dense_index = np.argmax(neighbor_counts)
                 most_dense_point = cluster_points[most_dense_index]
@@ -255,13 +271,20 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         centers_new = np.array(centers_new)
         return centers_new, clusters
 
-    def _generateNewSamples(self, Xmin: np.ndarray, boundaries: list, clusters: np.ndarray, centers: np.ndarray, N: int) -&gt; np.ndarray | None:
+    def _generate_new_samples(
+        self,
+        X_min: np.ndarray,
+        boundaries: list,
+        clusters: np.ndarray,
+        centers: np.ndarray,
+        N: int,
+    ) -&gt; np.ndarray | None:
         &#34;&#34;&#34;
         Generate new synthetic samples from cluster boundaries and centers.
 
         Parameters
         ----------
-        Xmin : ndarray
+        X_min : ndarray
             Minority samples after cleaning.
         boundaries : list of list
             Detected boundary samples.
@@ -279,37 +302,49 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         &#34;&#34;&#34;
         new_samples = []
         etiqueta_cluster = np.unique(clusters)
-        cluster_map = {x: (Xmin[clusters == x], np.array(boundaries[x]), centers[x]) for x in etiqueta_cluster}
+        cluster_map = {
+            x: (X_min[clusters == x], np.array(boundaries[x]), centers[x])
+            for x in etiqueta_cluster
+        }
         cluster_cycle = []
 
         for x in etiqueta_cluster:
-            XminCl, boundariesCl, cl = cluster_map[x]
-            n_samples = int(np.round(XminCl.shape[0] * N / Xmin.shape[0]))
-            cluster_cycle.extend([(x, boundariesCl, XminCl, cl)] * n_samples)
+            X_min_cl, boundaries_cl, cl = cluster_map[x]
+            n_samples = int(np.round(X_min_cl.shape[0] * N / X_min.shape[0]))
+            cluster_cycle.extend([(x, boundaries_cl, X_min_cl, cl)] * n_samples)
 
         np.random.shuffle(cluster_cycle)
-        iterable = tqdm(cluster_cycle, total=len(cluster_cycle)) if self._progress else cluster_cycle
+        iterable = (
+            tqdm(cluster_cycle, total=len(cluster_cycle))
+            if self._progress
+            else cluster_cycle
+        )
 
-        for x, boundariesCl, XminCl, cl in iterable:
-            xl_index = np.random.randint(boundariesCl.shape[0])
-            xl = boundariesCl[xl_index]
-            yl_index = np.random.randint(XminCl.shape[0])
-            yl = XminCl[yl_index]
+        for x, boundaries_cl, X_min_cl, cl in iterable:
+            xl_index = np.random.randint(boundaries_cl.shape[0])
+            xl = boundaries_cl[xl_index]
+            yl_index = np.random.randint(X_min_cl.shape[0])
+            yl = X_min_cl[yl_index]
 
             tries_until_change = 0
             total_tries = 0
-            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self._distMethods[&#34;euclidean&#34;](xl, yl) &gt; self._distMethods[&#34;euclidean&#34;](xl, cl):
+            while (
+                np.array_equal(yl, xl)
+                or np.any(np.all(yl == centers, axis=1))
+                or self._dist_methods[&#34;euclidean&#34;](xl, yl)
+                &gt; self._dist_methods[&#34;euclidean&#34;](xl, cl)
+            ):
                 total_tries += 1
                 tries_until_change += 1
-                yl_index = np.random.randint(XminCl.shape[0])
-                yl = XminCl[yl_index]
+                yl_index = np.random.randint(X_min_cl.shape[0])
+                yl = X_min_cl[yl_index]
 
                 if tries_until_change &gt; self._max_tries_until_change:
                     tries_until_change = 0
-                    xl_index = np.random.randint(boundariesCl.shape[0])
-                    xl = boundariesCl[xl_index]
-                    yl_index = np.random.randint(XminCl.shape[0])
-                    yl = XminCl[yl_index]
+                    xl_index = np.random.randint(boundaries_cl.shape[0])
+                    xl = boundaries_cl[xl_index]
+                    yl_index = np.random.randint(X_min_cl.shape[0])
+                    yl = X_min_cl[yl_index]
 
                 if total_tries &gt; self._max_iter:
                     return None
@@ -339,28 +374,27 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         ynew : ndarray
             Resampled class labels.
         &#34;&#34;&#34;
-        self._X = X
-        self._y = y
         np.random.seed(self._random_state)
-        labels, counts = np.unique(self._y, return_counts=True)
-        minLabel = labels[np.argmin(counts)]
-        ymin = self._y[self._y == minLabel]
-        Xmin = self._X[self._y == minLabel]
+        labels, counts = np.unique(y, return_counts=True)
+        min_label = labels[np.argmin(counts)]
+        X_min = X[y == min_label]
         N = np.max(counts) - np.min(counts)
 
-        Xmin_removed = self._removeNoisySamples(Xmin)
-        centers, clusters = self._clustering(Xmin_removed)
-        boundaries = self._screenBoundarySamples(Xmin_removed, clusters)
-        new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, int(N))
+        X_min_removed = self._remove_noisy_samples(X_min)
+        centers, clusters = self._clustering(X_min_removed)
+        boundaries = self._screen_boundary_samples(X_min_removed, clusters)
+        new_samples = self._generate_new_samples(
+            X_min_removed, boundaries, clusters, centers, int(N)
+        )
 
         if new_samples is None or new_samples.shape[0] == 0:
             self._status_code = 2
-            return self._X, self._y
+            return X, y
 
-        Xnew = np.vstack((self._X, new_samples))
-        ynew = np.hstack((self._y, np.array([minLabel]*new_samples.shape[0])))
+        X_new = np.vstack((X, new_samples))
+        y_new = np.hstack((y, np.array([min_label] * new_samples.shape[0])))
         self._status_code = 1
-        return Xnew, ynew
+        return X_new, y_new
 
     @property
     def summary(self) -&gt; dict:
@@ -375,7 +409,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
         status_msg = {
             0: &#34;Resample function not called.&#34;,
             1: &#34;Resample Succeeded.&#34;,
-            2: &#34;Resample Failed, returning original Data.&#34;
+            2: &#34;Resample Failed, returning original Data.&#34;,
         }.get(self._status_code)
 
         summary = {
@@ -403,7 +437,7 @@ técnica de sobremuestreo para problemas de clasificación desbalanceados’, Un
 <dl>
 <dt><strong><code>r</code></strong> :&ensp;<code>float</code>, default=<code>1.5</code></dt>
 <dd>Multiplier for IQR when filtering noisy samples.</dd>
-<dt><strong><code>distMethod</code></strong> :&ensp;<code>{'euclidean', 'manhattan', 'chebyshev'}</code>, default=<code>'euclidean'</code></dt>
+<dt><strong><code>dist_method</code></strong> :&ensp;<code>{'euclidean', 'manhattan', 'chebyshev'}</code>, default=<code>'euclidean'</code></dt>
 <dd>Distance metric used for noise filtering.</dd>
 <dt><strong><code>k</code></strong> :&ensp;<code>int</code>, default=<code>1</code></dt>
 <dd>Standard deviation multiplier for boundary sample detection.</dd>
@@ -459,7 +493,7 @@ def summary(self) -&gt; dict:
     status_msg = {
         0: &#34;Resample function not called.&#34;,
         1: &#34;Resample Succeeded.&#34;,
-        2: &#34;Resample Failed, returning original Data.&#34;
+        2: &#34;Resample Failed, returning original Data.&#34;,
     }.get(self._status_code)
 
     summary = {
@@ -513,28 +547,27 @@ def summary(self) -&gt; dict:
     ynew : ndarray
         Resampled class labels.
     &#34;&#34;&#34;
-    self._X = X
-    self._y = y
     np.random.seed(self._random_state)
-    labels, counts = np.unique(self._y, return_counts=True)
-    minLabel = labels[np.argmin(counts)]
-    ymin = self._y[self._y == minLabel]
-    Xmin = self._X[self._y == minLabel]
+    labels, counts = np.unique(y, return_counts=True)
+    min_label = labels[np.argmin(counts)]
+    X_min = X[y == min_label]
     N = np.max(counts) - np.min(counts)
 
-    Xmin_removed = self._removeNoisySamples(Xmin)
-    centers, clusters = self._clustering(Xmin_removed)
-    boundaries = self._screenBoundarySamples(Xmin_removed, clusters)
-    new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, int(N))
+    X_min_removed = self._remove_noisy_samples(X_min)
+    centers, clusters = self._clustering(X_min_removed)
+    boundaries = self._screen_boundary_samples(X_min_removed, clusters)
+    new_samples = self._generate_new_samples(
+        X_min_removed, boundaries, clusters, centers, int(N)
+    )
 
     if new_samples is None or new_samples.shape[0] == 0:
         self._status_code = 2
-        return self._X, self._y
+        return X, y
 
-    Xnew = np.vstack((self._X, new_samples))
-    ynew = np.hstack((self._y, np.array([minLabel]*new_samples.shape[0])))
+    X_new = np.vstack((X, new_samples))
+    y_new = np.hstack((y, np.array([min_label] * new_samples.shape[0])))
     self._status_code = 1
-    return Xnew, ynew</code></pre>
+    return X_new, y_new</code></pre>
 </details>
 <div class="desc"><p>Fit and resample the dataset by generating synthetic minority samples.</p>
 <h2 id="parameters">Parameters</h2>
@@ -560,7 +593,7 @@ def summary(self) -&gt; dict:
 <nav id="sidebar">
 <div class="toc">
 <ul>
-<li><a href="#dab_smotepy">dab_smote.py</a><ul>
+<li><a href="#dab_smotepy">DAB_SMOTE.py</a><ul>
 <li><a href="#references">References</a></li>
 <li><a href="#author">Author</a></li>
 </ul>

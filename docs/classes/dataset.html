@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>classes.dataset API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="dataReading Module
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,14 @@ el.replaceWith(d);
 <h1 class="title">Module <code>classes.dataset</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="datareading-module">dataReading Module</h1>
+<p>This module provides a basic dataset reader and a simple <code><a title="classes.dataset.dataset" href="#classes.dataset.dataset">dataset</a></code> class.</p>
+<p>The <code><a title="classes.dataset.dataset" href="#classes.dataset.dataset">dataset</a></code> class included here is a minimal structure for storing features,
+targets, feature names, and attribute information. The <code><a title="classes.dataset.dataReading" href="#classes.dataset.dataReading">dataReading()</a></code> function
+reads a dataset file following the specific format expected by this module.</p>
+<h2 id="note">Note</h2>
+<p>The <code><a title="classes.dataset.dataset" href="#classes.dataset.dataset">dataset</a></code> class is replaceable by any other class or structure that
+provides compatible attributes and can store the dataset in a similar way.</p>
 </section>
 <section>
 </section>
@@ -53,80 +62,82 @@ el.replaceWith(d);
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def dataReading(fileE):
-        f = open(fileE, &#39;r&#39;)
+    f = open(fileE, &#34;r&#34;)
+    line = f.readline()
+    att = OrderedDict()
+    ds = dataset()
+    ds.data = []
+    ds.target = []
+    ds.feature_names = []
+    ds.target_names = []
+    ds.categorical = []
+    while line.find(&#34;@data&#34;) &lt; 0:
+        if line.find(&#34;@attribute&#34;) &gt;= 0 and (
+            (line.find(&#34;real&#34;) &gt;= 0) or (line.find(&#34;integer&#34;) &gt;= 0)
+        ):
+            line = line.split()
+            minVal = line[3].split(&#34;[&#34;)
+            minVal = float(minVal[1].split(&#34;,&#34;)[0])
+            maxVal = float(line[4].split(&#34;]&#34;)[0])
+            attAux = {line[1]: [minVal, maxVal]}
+            att.update(attAux)
+            ds.categorical.append(False)
+        elif line.find(&#34;@attribute&#34;) &gt;= 0 and line.find(&#34;real&#34;) &lt; 0:
+            line = line.split()
+            values = []
+            l = line[2]
+            l = l.split(&#34;{&#34;)
+            values.append(l[1].split(&#34;,&#34;)[0])
+            for l in line[3:-1]:
+                values.append(l.split(&#34;,&#34;)[0])
+            l = line[-1]
+            l = l.split(&#34;}&#34;)
+            values.append(l[0])
+            attAux = {line[1]: values}
+            att.update(attAux)
+            ds.categorical.append(True)
+        elif line.find(&#34;@output&#34;) &gt;= 0 or line.find(&#34;@outputs&#34;) &gt;= 0:
+            class_name = line.split()
+            class_name = class_name[1]
         line = f.readline()
-        att = OrderedDict()
-        ds = dataset()
-        ds.data = []
-        ds.target = []
-        ds.feature_names = []
-        ds.target_names = []
-        ds.categorical = []
-        while line.find(&#34;@data&#34;) &lt; 0:
-                if line.find(&#34;@attribute&#34;) &gt;= 0 and ((line.find(&#34;real&#34;) &gt;= 0) or (line.find(&#34;integer&#34;) &gt;= 0)):
-                        line = line.split()
-                        minVal = line[3].split(&#34;[&#34;)
-                        minVal = float(minVal[1].split(&#34;,&#34;)[0])
-                        maxVal = float(line[4].split(&#34;]&#34;)[0])
-                        attAux = {line[1]: [minVal, maxVal]}
-                        att.update(attAux)
-                        ds.categorical.append(False)
-                elif line.find(&#34;@attribute&#34;) &gt;= 0 and line.find(&#34;real&#34;) &lt; 0:
-                        line = line.split()
-                        values = []
-                        l = line[2]
-                        l = l.split(&#39;{&#39;)
-                        values.append(l[1].split(&#39;,&#39;)[0])
-                        for l in line[3:-1]:
-                                values.append(l.split(&#39;,&#39;)[0])
-                        l = line[-1]
-                        l = l.split(&#39;}&#39;)
-                        values.append(l[0])
-                        attAux = {line[1]: values}
-                        att.update(attAux)
-                        ds.categorical.append(True)
-                elif line.find(&#34;@output&#34;) &gt;= 0 or line.find(&#34;@outputs&#34;) &gt;= 0:
-                        class_name = line.split()
-                        class_name = class_name[1]
-                line = f.readline()
-        auxClasses = att.pop(class_name)
-        ds.categorical = ds.categorical[:-1]
-        classes = auxClasses[:]
-        attAux = {class_name: classes}
-        att.update(attAux)
+    auxClasses = att.pop(class_name)
+    ds.categorical = ds.categorical[:-1]
+    classes = auxClasses[:]
+    attAux = {class_name: classes}
+    att.update(attAux)
+    line = f.readline()
+    exampleClasses = []
+    examples = []
+    examplesOriginal = []
+    while line != &#34;&#34;:
+        line = line.replace(&#34;,&#34;, &#34; &#34;)
+        l = line.split()
+        values = l[0 : len(l) - 1]
+        val = []
+        valOriginal = []
+        for i, v in enumerate(values):
+            if ds.categorical[i]:
+                keyList = list(att)
+                lista = att[keyList[i]]
+                val.append(lista.index(v))
+                valOriginal.append(v)
+            else:
+                val.append(float(v))
+                valOriginal.append(float(v))
+        examples.append(val)
+        examplesOriginal.append(valOriginal)
+        lista = att[class_name]
+        exampleClasses.append(lista.index(l[len(l) - 1]))
         line = f.readline()
-        exampleClasses = []
-        examples = []
-        examplesOriginal = []
-        while line != &#34;&#34;:
-                line = line.replace(&#34;,&#34;, &#34; &#34;)
-                l = line.split()
-                values = l[0:len(l) - 1]
-                val = []
-                valOriginal = []
-                for i, v in enumerate(values):
-                        if ds.categorical[i]:
-                                keyList = list(att)
-                                lista = att[keyList[i]]
-                                val.append(lista.index(v))
-                                valOriginal.append(v)
-                        else:
-                                val.append(float(v))
-                                valOriginal.append(float(v))
-                examples.append(val)
-                examplesOriginal.append(valOriginal)
-                lista = att[class_name]
-                exampleClasses.append(lista.index(l[len(l) - 1]))
-                line = f.readline()
-        examples = np.array(examples)
-        f.close()
-        ds.data = examples
-        ds.target = np.array(exampleClasses)
-        aux = list(att)
-        ds.feature_names = aux[:-1]
-        ds.target_names = att[class_name]
-        ds.infoAtributos = att
-        return ds</code></pre>
+    examples = np.array(examples)
+    f.close()
+    ds.data = examples
+    ds.target = np.array(exampleClasses)
+    aux = list(att)
+    ds.feature_names = aux[:-1]
+    ds.target_names = att[class_name]
+    ds.infoAtributos = att
+    return ds</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -144,11 +155,11 @@ el.replaceWith(d);
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class dataset:
-        data = []
-        target = []
-        feature_names = []
-        target_names = []
-        infoAtributos = {}</code></pre>
+    data = []
+    target = []
+    feature_names = []
+    target_names = []
+    infoAtributos = {}</code></pre>
 </details>
 <div class="desc"></div>
 <h3>Class variables</h3>
@@ -180,7 +191,12 @@ el.replaceWith(d);
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#datareading-module">dataReading Module</a><ul>
+<li><a href="#note">Note</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>

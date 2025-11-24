@@ -1,0 +1,16 @@
+[MASTER]
+ignore=dataset.py
+
+[MESSAGES CONTROL]
+disable=too-many-arguments
+
+[BASIC]
+module-rgx=([a-z][a-z0-9_]*|[A-Z]+(_[A-Z0-9]+)*|[A-Z][a-z0-9]+(_[A-Z0-9]+)*)$
+class-rgx=([a-z][a-z0-9_]*|[A-Z]+(_[A-Z0-9]+)*|[A-Z][a-z0-9]+(_[A-Z0-9]+)*)$
+argument-rgx=([a-z_][a-z0-9_]*|[A-Z](_[a-z0-9_]+|[0-9]+)?|[A-Z]{2,}[A-Z0-9_]*)$
+variable-rgx=([a-z_][a-z0-9_]*|[A-Z](_[a-z0-9_]+|[0-9]+)?|[A-Z]{2,}[A-Z0-9_]*)$
+
+[DESIGN]
+max-attributes=20
+max-locals=25
+max-positional-arguments=10

@@ -1,5 +1,5 @@
 """
-dab_smote.py
+DAB_SMOTE.py
 ============
 
 Implementation of DAB-SMOTE (Density Aware Borderline Synthetic Minority Oversampling Technique).
@@ -10,8 +10,9 @@ noise removal, and density-based clustering to improve the representativeness of
 
 References
 ----------
-- U. Lalana and J. A. S. Delgado, ‘Estudio, análisis e implementación de FSDR-SMOTE, 
-técnica de sobremuestreo para problemas de clasificación desbalanceados’, Universidad Publica de Navarra.
+- U. Lalana and J. A. S. Delgado, ‘Estudio, análisis e implementación de FSDR-SMOTE,
+técnica de sobremuestreo para problemas de clasificación desbalanceados’,
+Universidad Publica de Navarra.
 
 Author
 ------
@@ -21,8 +22,8 @@ Unai Lalana
 import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances_argmin_min
-from tqdm import tqdm
 from sklearn.neighbors import NearestNeighbors
+from tqdm import tqdm
 
 
 class DAB_SMOTE:
@@ -39,7 +40,7 @@ class DAB_SMOTE:
     ----------
     r : float, default=1.5
         Multiplier for IQR when filtering noisy samples.
-    distMethod : {'euclidean', 'manhattan', 'chebyshev'}, default='euclidean'
+    dist_method : {'euclidean', 'manhattan', 'chebyshev'}, default='euclidean'
         Distance metric used for noise filtering.
     k : int, default=1
         Standard deviation multiplier for boundary sample detection.
@@ -71,14 +72,25 @@ class DAB_SMOTE:
         - 2: Failed (returns original data)
     """
 
-    def __init__(self, r: float = 1.5, distMethod: str = "euclidean", k: float = 1, max_tries_until_change: int = 10,
-                 max_iter: int = 10000, random_state: int = 42, solver: str = 'means', progress: bool = False) -> None:
+    def __init__(
+        self,
+        r: float = 1.5,
+        dist_method: str = "euclidean",
+        k: float = 1,
+        max_tries_until_change: int = 10,
+        max_iter: int = 10000,
+        random_state: int = 42,
+        solver: str = "means",
+        progress: bool = False,
+    ) -> None:
         self._r = r
-        self._distMethod = distMethod
+        self._dist_method = dist_method
         self._k = k
-        self._distMethods = {"euclidean": lambda a, b: np.sqrt(np.sum((a - b) ** 2)), 
-                             "manhattan": lambda a, b: np.sum(np.abs(a - b)),
-                             "chebyshev": lambda a, b: np.max(np.abs(a - b))}
+        self._dist_methods = {
+            "euclidean": lambda a, b: np.sqrt(np.sum((a - b) ** 2)),
+            "manhattan": lambda a, b: np.sum(np.abs(a - b)),
+            "chebyshev": lambda a, b: np.max(np.abs(a - b)),
+        }
         self._max_tries_until_change = max_tries_until_change
         self._max_iter = max_iter
         self._solver = solver
@@ -90,49 +102,49 @@ class DAB_SMOTE:
         self._border_samples_percent = 0
         self._status_code = 0
 
-    def _removeNoisySamples(self, Xmin: np.ndarray) -> np.ndarray:
+    def _remove_noisy_samples(self, X_min: np.ndarray) -> np.ndarray:
         """
         Remove noisy samples based on the interquartile range (IQR) method.
 
         Parameters
         ----------
-        Xmin : ndarray of shape (n_samples, n_features)
+        X_min : ndarray of shape (n_samples, n_features)
             Minority class samples.
 
         Returns
         -------
-        Xmin : ndarray
+        X_min : ndarray
             Minority samples with noisy points removed.
         """
-        Xmin_mean = np.mean(Xmin, axis=0)
-        dists = np.zeros(np.shape(Xmin)[0])
-        N = np.shape(Xmin)[0]
+        X_min_mean = np.mean(X_min, axis=0)
+        dists = np.zeros(np.shape(X_min)[0])
+        N = np.shape(X_min)[0]
 
-        for i in range(len(Xmin)):
-            dists[i] = self._distMethods[self._distMethod](Xmin[i], Xmin_mean)
+        for i, x in enumerate(X_min):
+            dists[i] = self._dist_methods[self._dist_method](x, X_min_mean)
 
         dists_sort = np.sort(dists)
-        Q1 = dists_sort[int(np.round((N+1)*0.25))]
-        Q3 = dists_sort[int(np.round((N+1)*0.75))]
+        Q1 = dists_sort[int(np.round((N + 1) * 0.25))]
+        Q3 = dists_sort[int(np.round((N + 1) * 0.75))]
         IQR = Q3 - Q1
         ub = Q1 + self._r * IQR
 
         delete = []
-        for i in range(len(dists)):
-            if dists[i] > ub:
+        for i, dist in enumerate(dists):
+            if dist > ub:
                 delete.append(i)
 
         self._n_removed = len(delete)
-        Xmin = np.delete(Xmin, delete, axis=0)
-        return Xmin
+        X_min = np.delete(X_min, delete, axis=0)
+        return X_min
 
-    def _screenBoundarySamples(self, Xmin: np.ndarray, clusters: np.ndarray) -> list:
+    def _screen_boundary_samples(self, X_min: np.ndarray, clusters: np.ndarray) -> list:
         """
         Identify boundary samples in each cluster.
 
         Parameters
         ----------
-        Xmin : ndarray
+        X_min : ndarray
             Minority class samples.
         clusters : ndarray
             Cluster labels assigned by DBSCAN.
@@ -147,26 +159,26 @@ class DAB_SMOTE:
         boundaries_totales = []
 
         for x in etiqueta_cluster:
-            XminCl = Xmin[clusters == x]
-            ajs = np.mean(XminCl, axis=0)
-            ojs = np.std(XminCl, axis=0)
+            X_min_cl = X_min[clusters == x]
+            ajs = np.mean(X_min_cl, axis=0)
+            ojs = np.std(X_min_cl, axis=0)
             boundaries = []
-            for j in range(XminCl.shape[1]):
-                for i in range(XminCl.shape[0]):
-                    if np.abs(XminCl[i, j] - ajs[j]) > (ojs[j] * k):
-                        boundaries.append(XminCl[i])
+            for j in range(X_min_cl.shape[1]):
+                for i in range(X_min_cl.shape[0]):
+                    if np.abs(X_min_cl[i, j] - ajs[j]) > (ojs[j] * k):
+                        boundaries.append(X_min_cl[i])
             boundaries_totales.append(boundaries)
 
-        self._border_samples_percent = len(boundaries_totales) / Xmin.shape[0]
+        self._border_samples_percent = len(boundaries_totales) / X_min.shape[0]
         return boundaries_totales
 
-    def _clustering(self, Xmin: np.ndarray) -> tuple:
+    def _clustering(self, X_min: np.ndarray) -> tuple:
         """
         Cluster minority samples using DBSCAN and compute cluster centers.
 
         Parameters
         ----------
-        Xmin : ndarray
+        X_min : ndarray
             Minority class samples.
 
         Returns
@@ -176,7 +188,7 @@ class DAB_SMOTE:
         clusters : ndarray
             Cluster labels assigned to each sample.
         """
-        db = DBSCAN(eps=0.75, min_samples=10).fit(Xmin)
+        db = DBSCAN(eps=0.75, min_samples=10).fit(X_min)
         clusters = db.labels_
 
         noise_indices = np.where(clusters == -1)[0]
@@ -184,7 +196,9 @@ class DAB_SMOTE:
 
         if len(noise_indices) > 0:
             if len(cluster_indices) > 0:
-                closest_clusters, _ = pairwise_distances_argmin_min(Xmin[noise_indices], Xmin[cluster_indices])
+                closest_clusters, _ = pairwise_distances_argmin_min(
+                    X_min[noise_indices], X_min[cluster_indices]
+                )
                 for noise_idx, closest_idx in zip(noise_indices, closest_clusters):
                     clusters[noise_idx] = clusters[cluster_indices[closest_idx]]
             else:
@@ -194,16 +208,18 @@ class DAB_SMOTE:
         self._number_of_clusters = len(unique_clusters)
         centers_new = []
 
-        if self._solver == 'means':
+        if self._solver == "means":
             for cluster in unique_clusters:
-                cluster_points = Xmin[clusters == cluster]
+                cluster_points = X_min[clusters == cluster]
                 center = cluster_points.mean(axis=0)
                 centers_new.append(center)
-        elif self._solver == 'density':
+        elif self._solver == "density":
             for cluster in unique_clusters:
-                cluster_points = Xmin[clusters == cluster]
+                cluster_points = X_min[clusters == cluster]
                 nbrs = NearestNeighbors(radius=0.75).fit(cluster_points)
-                radii_neighbors = nbrs.radius_neighbors(cluster_points, return_distance=False)
+                radii_neighbors = nbrs.radius_neighbors(
+                    cluster_points, return_distance=False
+                )
                 neighbor_counts = np.array([len(neigh) for neigh in radii_neighbors])
                 most_dense_index = np.argmax(neighbor_counts)
                 most_dense_point = cluster_points[most_dense_index]
@@ -212,13 +228,20 @@ class DAB_SMOTE:
         centers_new = np.array(centers_new)
         return centers_new, clusters
 
-    def _generateNewSamples(self, Xmin: np.ndarray, boundaries: list, clusters: np.ndarray, centers: np.ndarray, N: int) -> np.ndarray | None:
+    def _generate_new_samples(
+        self,
+        X_min: np.ndarray,
+        boundaries: list,
+        clusters: np.ndarray,
+        centers: np.ndarray,
+        N: int,
+    ) -> np.ndarray | None:
         """
         Generate new synthetic samples from cluster boundaries and centers.
 
         Parameters
         ----------
-        Xmin : ndarray
+        X_min : ndarray
             Minority samples after cleaning.
         boundaries : list of list
             Detected boundary samples.
@@ -236,37 +259,49 @@ class DAB_SMOTE:
         """
         new_samples = []
         etiqueta_cluster = np.unique(clusters)
-        cluster_map = {x: (Xmin[clusters == x], np.array(boundaries[x]), centers[x]) for x in etiqueta_cluster}
+        cluster_map = {
+            x: (X_min[clusters == x], np.array(boundaries[x]), centers[x])
+            for x in etiqueta_cluster
+        }
         cluster_cycle = []
 
         for x in etiqueta_cluster:
-            XminCl, boundariesCl, cl = cluster_map[x]
-            n_samples = int(np.round(XminCl.shape[0] * N / Xmin.shape[0]))
-            cluster_cycle.extend([(x, boundariesCl, XminCl, cl)] * n_samples)
+            X_min_cl, boundaries_cl, cl = cluster_map[x]
+            n_samples = int(np.round(X_min_cl.shape[0] * N / X_min.shape[0]))
+            cluster_cycle.extend([(x, boundaries_cl, X_min_cl, cl)] * n_samples)
 
         np.random.shuffle(cluster_cycle)
-        iterable = tqdm(cluster_cycle, total=len(cluster_cycle)) if self._progress else cluster_cycle
+        iterable = (
+            tqdm(cluster_cycle, total=len(cluster_cycle))
+            if self._progress
+            else cluster_cycle
+        )
 
-        for x, boundariesCl, XminCl, cl in iterable:
-            xl_index = np.random.randint(boundariesCl.shape[0])
-            xl = boundariesCl[xl_index]
-            yl_index = np.random.randint(XminCl.shape[0])
-            yl = XminCl[yl_index]
+        for x, boundaries_cl, X_min_cl, cl in iterable:
+            xl_index = np.random.randint(boundaries_cl.shape[0])
+            xl = boundaries_cl[xl_index]
+            yl_index = np.random.randint(X_min_cl.shape[0])
+            yl = X_min_cl[yl_index]
 
             tries_until_change = 0
             total_tries = 0
-            while np.array_equal(yl, xl) or np.any(np.all(yl == centers, axis=1)) or self._distMethods["euclidean"](xl, yl) > self._distMethods["euclidean"](xl, cl):
+            while (
+                np.array_equal(yl, xl)
+                or np.any(np.all(yl == centers, axis=1))
+                or self._dist_methods["euclidean"](xl, yl)
+                > self._dist_methods["euclidean"](xl, cl)
+            ):
                 total_tries += 1
                 tries_until_change += 1
-                yl_index = np.random.randint(XminCl.shape[0])
-                yl = XminCl[yl_index]
+                yl_index = np.random.randint(X_min_cl.shape[0])
+                yl = X_min_cl[yl_index]
 
                 if tries_until_change > self._max_tries_until_change:
                     tries_until_change = 0
-                    xl_index = np.random.randint(boundariesCl.shape[0])
-                    xl = boundariesCl[xl_index]
-                    yl_index = np.random.randint(XminCl.shape[0])
-                    yl = XminCl[yl_index]
+                    xl_index = np.random.randint(boundaries_cl.shape[0])
+                    xl = boundaries_cl[xl_index]
+                    yl_index = np.random.randint(X_min_cl.shape[0])
+                    yl = X_min_cl[yl_index]
 
                 if total_tries > self._max_iter:
                     return None
@@ -296,28 +331,27 @@ class DAB_SMOTE:
         ynew : ndarray
             Resampled class labels.
         """
-        self._X = X
-        self._y = y
         np.random.seed(self._random_state)
-        labels, counts = np.unique(self._y, return_counts=True)
-        minLabel = labels[np.argmin(counts)]
-        ymin = self._y[self._y == minLabel]
-        Xmin = self._X[self._y == minLabel]
+        labels, counts = np.unique(y, return_counts=True)
+        min_label = labels[np.argmin(counts)]
+        X_min = X[y == min_label]
         N = np.max(counts) - np.min(counts)
 
-        Xmin_removed = self._removeNoisySamples(Xmin)
-        centers, clusters = self._clustering(Xmin_removed)
-        boundaries = self._screenBoundarySamples(Xmin_removed, clusters)
-        new_samples = self._generateNewSamples(Xmin_removed, boundaries, clusters, centers, int(N))
+        X_min_removed = self._remove_noisy_samples(X_min)
+        centers, clusters = self._clustering(X_min_removed)
+        boundaries = self._screen_boundary_samples(X_min_removed, clusters)
+        new_samples = self._generate_new_samples(
+            X_min_removed, boundaries, clusters, centers, int(N)
+        )
 
         if new_samples is None or new_samples.shape[0] == 0:
             self._status_code = 2
-            return self._X, self._y
+            return X, y
 
-        Xnew = np.vstack((self._X, new_samples))
-        ynew = np.hstack((self._y, np.array([minLabel]*new_samples.shape[0])))
+        X_new = np.vstack((X, new_samples))
+        y_new = np.hstack((y, np.array([min_label] * new_samples.shape[0])))
         self._status_code = 1
-        return Xnew, ynew
+        return X_new, y_new
 
     @property
     def summary(self) -> dict:
@@ -332,7 +366,7 @@ class DAB_SMOTE:
         status_msg = {
             0: "Resample function not called.",
             1: "Resample Succeeded.",
-            2: "Resample Failed, returning original Data."
+            2: "Resample Failed, returning original Data.",
         }.get(self._status_code)
 
         summary = {
@@ -349,4 +383,3 @@ class DAB_SMOTE:
             print(f"{k}: {v}")
         print("---------------")
         return summary
-

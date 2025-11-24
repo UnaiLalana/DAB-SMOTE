@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>classes.Visual_DAB API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Visual_DAB.py
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,25 @@ el.replaceWith(d);
 <h1 class="title">Module <code>classes.Visual_DAB</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="visual_dabpy">Visual_DAB.py</h1>
+<p>Visualization and debugging extension for DAB_SMOTE
+(Density Aware Borderline Synthetic Minority Oversampling Technique).</p>
+<p>This module provides a subclass of :class:<code>DAB_SMOTE.DAB_SMOTE</code> that exposes
+internal methods for visualization, inspection, and debugging. It is intended
+to allow users to inspect intermediate steps in the synthetic sample generation
+process, such as noise removal, clustering, boundary detection, and sample
+generation.</p>
+<p>The class :class:<code>Visual_DAB.Visual_DAB</code> can be used to monitor, visualize,
+and better understand the behavior of the DAB_SMOTE oversampling algorithm.</p>
+<h2 id="references">References</h2>
+<ul>
+<li>U. Lalana and J. A. S. Delgado, ‘Estudio, análisis e implementación de FSDR-SMOTE,
+técnica de sobremuestreo para problemas de clasificación desbalanceados’,
+Universidad Publica de Navarra.</li>
+<li>The original DAB_SMOTE methodology as implemented in :class:<code>DAB_SMOTE.DAB_SMOTE</code>.</li>
+</ul>
+<h2 id="author">Author</h2>
+<p>Unai Lalana</p>
 </section>
 <section>
 </section>
@@ -92,7 +112,7 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         super().__init__(**kwargs)
 
-    def get_removed_samples(self, Xmin: np.ndarray) -&gt; np.ndarray:
+    def get_removed_samples(self, X_min: np.ndarray) -&gt; np.ndarray:
         &#34;&#34;&#34;
         Return filtered minority samples after removing noise.
 
@@ -102,7 +122,7 @@ el.replaceWith(d);
 
         Parameters
         ----------
-        Xmin : np.ndarray
+        X_min : np.ndarray
             Array containing minority class samples.
 
         Returns
@@ -110,9 +130,11 @@ el.replaceWith(d);
         np.ndarray
             Filtered array of minority class samples with noisy instances removed.
         &#34;&#34;&#34;
-        return self._removeNoisySamples(Xmin)
+        return self._remove_noisy_samples(X_min)
 
-    def get_clustering(self, Xmin: np.ndarray, solver: str = &#39;means&#39;) -&gt; tuple[np.ndarray, np.ndarray]:
+    def get_clustering(
+        self, X_min: np.ndarray, solver: str = &#34;means&#34;
+    ) -&gt; tuple[np.ndarray, np.ndarray]:
         &#34;&#34;&#34;
         Return clustering results of the minority samples.
 
@@ -121,7 +143,7 @@ el.replaceWith(d);
 
         Parameters
         ----------
-        Xmin : np.ndarray
+        X_min : np.ndarray
             Minority class samples to be clustered.
         solver : {&#39;means&#39;, &#39;density&#39;}, default=&#39;means&#39;
             Method to compute cluster centers. If &#39;means&#39;, centers are the mean
@@ -137,9 +159,11 @@ el.replaceWith(d);
                 Cluster label assigned to each sample.
         &#34;&#34;&#34;
         self._solver = solver
-        return self._clustering(Xmin)
+        return self._clustering(X_min)
 
-    def get_screened_boundaries(self, Xmin: np.ndarray, clusters: np.ndarray) -&gt; list[np.ndarray]:
+    def get_screened_boundaries(
+        self, X_min: np.ndarray, clusters: np.ndarray
+    ) -&gt; list[np.ndarray]:
         &#34;&#34;&#34;
         Return detected boundary samples of the minority class clusters.
 
@@ -148,7 +172,7 @@ el.replaceWith(d);
 
         Parameters
         ----------
-        Xmin : np.ndarray
+        X_min : np.ndarray
             Minority class samples.
         clusters : np.ndarray
             Array of cluster labels corresponding to each sample.
@@ -158,9 +182,16 @@ el.replaceWith(d);
         list of np.ndarray
             List containing arrays of boundary samples for each cluster.
         &#34;&#34;&#34;
-        return self._screenBoundarySamples(Xmin, clusters)
+        return self._screen_boundary_samples(X_min, clusters)
 
-    def get_generated_samples(self, Xmin: np.ndarray, borders: list, clusters: np.ndarray, centers: np.ndarray, N: int) -&gt; np.ndarray | None:
+    def get_generated_samples(
+        self,
+        X_min: np.ndarray,
+        borders: list,
+        clusters: np.ndarray,
+        centers: np.ndarray,
+        N: int,
+    ) -&gt; np.ndarray | None:
         &#34;&#34;&#34;
         Return synthetic samples generated by the DAB_SMOTE algorithm.
 
@@ -169,7 +200,7 @@ el.replaceWith(d);
 
         Parameters
         ----------
-        Xmin : np.ndarray
+        X_min : np.ndarray
             Minority class samples.
         borders : list of np.ndarray
             Boundary samples detected for each cluster.
@@ -185,7 +216,7 @@ el.replaceWith(d);
         np.ndarray or None
             Array of generated synthetic samples, or None if generation fails.
         &#34;&#34;&#34;
-        return self._generateNewSamples(Xmin, borders, clusters, centers, N)</code></pre>
+        return self._generate_new_samples(X_min, borders, clusters, centers, N)</code></pre>
 </details>
 <div class="desc"><p>A visualization and debugging extension of the DAB_SMOTE oversampling algorithm.</p>
 <p>This class inherits from :class:<code>DAB_SMOTE.DAB_SMOTE</code> and exposes internal
@@ -220,14 +251,16 @@ the synthetic data generation process.</p>
 <h3>Methods</h3>
 <dl>
 <dt id="classes.Visual_DAB.Visual_DAB.get_clustering"><code class="name flex">
-<span>def <span class="ident">get_clustering</span></span>(<span>self, Xmin: numpy.ndarray, solver: str = 'means') ‑> tuple[numpy.ndarray, numpy.ndarray]</span>
+<span>def <span class="ident">get_clustering</span></span>(<span>self, X_min: numpy.ndarray, solver: str = 'means') ‑> tuple[numpy.ndarray, numpy.ndarray]</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_clustering(self, Xmin: np.ndarray, solver: str = &#39;means&#39;) -&gt; tuple[np.ndarray, np.ndarray]:
+<pre><code class="python">def get_clustering(
+    self, X_min: np.ndarray, solver: str = &#34;means&#34;
+) -&gt; tuple[np.ndarray, np.ndarray]:
     &#34;&#34;&#34;
     Return clustering results of the minority samples.
 
@@ -236,7 +269,7 @@ the synthetic data generation process.</p>
 
     Parameters
     ----------
-    Xmin : np.ndarray
+    X_min : np.ndarray
         Minority class samples to be clustered.
     solver : {&#39;means&#39;, &#39;density&#39;}, default=&#39;means&#39;
         Method to compute cluster centers. If &#39;means&#39;, centers are the mean
@@ -252,14 +285,14 @@ the synthetic data generation process.</p>
             Cluster label assigned to each sample.
     &#34;&#34;&#34;
     self._solver = solver
-    return self._clustering(Xmin)</code></pre>
+    return self._clustering(X_min)</code></pre>
 </details>
 <div class="desc"><p>Return clustering results of the minority samples.</p>
 <p>Performs DBSCAN clustering on the minority class samples and
 computes cluster centers using the specified solver method.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>Xmin</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dt><strong><code>X_min</code></strong> :&ensp;<code>np.ndarray</code></dt>
 <dd>Minority class samples to be clustered.</dd>
 <dt><strong><code>solver</code></strong> :&ensp;<code>{'means', 'density'}</code>, default=<code>'means'</code></dt>
 <dd>Method to compute cluster centers. If 'means', centers are the mean
@@ -276,14 +309,21 @@ Cluster label assigned to each sample.</dd>
 </dl></div>
 </dd>
 <dt id="classes.Visual_DAB.Visual_DAB.get_generated_samples"><code class="name flex">
-<span>def <span class="ident">get_generated_samples</span></span>(<span>self,<br>Xmin: numpy.ndarray,<br>borders: list,<br>clusters: numpy.ndarray,<br>centers: numpy.ndarray,<br>N: int) ‑> numpy.ndarray | None</span>
+<span>def <span class="ident">get_generated_samples</span></span>(<span>self,<br>X_min: numpy.ndarray,<br>borders: list,<br>clusters: numpy.ndarray,<br>centers: numpy.ndarray,<br>N: int) ‑> numpy.ndarray | None</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_generated_samples(self, Xmin: np.ndarray, borders: list, clusters: np.ndarray, centers: np.ndarray, N: int) -&gt; np.ndarray | None:
+<pre><code class="python">def get_generated_samples(
+    self,
+    X_min: np.ndarray,
+    borders: list,
+    clusters: np.ndarray,
+    centers: np.ndarray,
+    N: int,
+) -&gt; np.ndarray | None:
     &#34;&#34;&#34;
     Return synthetic samples generated by the DAB_SMOTE algorithm.
 
@@ -292,7 +332,7 @@ Cluster label assigned to each sample.</dd>
 
     Parameters
     ----------
-    Xmin : np.ndarray
+    X_min : np.ndarray
         Minority class samples.
     borders : list of np.ndarray
         Boundary samples detected for each cluster.
@@ -308,14 +348,14 @@ Cluster label assigned to each sample.</dd>
     np.ndarray or None
         Array of generated synthetic samples, or None if generation fails.
     &#34;&#34;&#34;
-    return self._generateNewSamples(Xmin, borders, clusters, centers, N)</code></pre>
+    return self._generate_new_samples(X_min, borders, clusters, centers, N)</code></pre>
 </details>
 <div class="desc"><p>Return synthetic samples generated by the DAB_SMOTE algorithm.</p>
 <p>Generates new synthetic samples between boundary and cluster samples
 based on the interpolation and density-adaptive balancing mechanism of DAB_SMOTE.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>Xmin</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dt><strong><code>X_min</code></strong> :&ensp;<code>np.ndarray</code></dt>
 <dd>Minority class samples.</dd>
 <dt><strong><code>borders</code></strong> :&ensp;<code>list</code> of <code>np.ndarray</code></dt>
 <dd>Boundary samples detected for each cluster.</dd>
@@ -333,14 +373,14 @@ based on the interpolation and density-adaptive balancing mechanism of DAB_SMOTE
 </dl></div>
 </dd>
 <dt id="classes.Visual_DAB.Visual_DAB.get_removed_samples"><code class="name flex">
-<span>def <span class="ident">get_removed_samples</span></span>(<span>self, Xmin: numpy.ndarray) ‑> numpy.ndarray</span>
+<span>def <span class="ident">get_removed_samples</span></span>(<span>self, X_min: numpy.ndarray) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_removed_samples(self, Xmin: np.ndarray) -&gt; np.ndarray:
+<pre><code class="python">def get_removed_samples(self, X_min: np.ndarray) -&gt; np.ndarray:
     &#34;&#34;&#34;
     Return filtered minority samples after removing noise.
 
@@ -350,7 +390,7 @@ based on the interpolation and density-adaptive balancing mechanism of DAB_SMOTE
 
     Parameters
     ----------
-    Xmin : np.ndarray
+    X_min : np.ndarray
         Array containing minority class samples.
 
     Returns
@@ -358,7 +398,7 @@ based on the interpolation and density-adaptive balancing mechanism of DAB_SMOTE
     np.ndarray
         Filtered array of minority class samples with noisy instances removed.
     &#34;&#34;&#34;
-    return self._removeNoisySamples(Xmin)</code></pre>
+    return self._remove_noisy_samples(X_min)</code></pre>
 </details>
 <div class="desc"><p>Return filtered minority samples after removing noise.</p>
 <p>This method is intended for debugging only. It exposes the internal
@@ -366,7 +406,7 @@ noise removal process used in the DAB_SMOTE algorithm to identify and
 remove outliers from the minority class.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>Xmin</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dt><strong><code>X_min</code></strong> :&ensp;<code>np.ndarray</code></dt>
 <dd>Array containing minority class samples.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -376,14 +416,16 @@ remove outliers from the minority class.</p>
 </dl></div>
 </dd>
 <dt id="classes.Visual_DAB.Visual_DAB.get_screened_boundaries"><code class="name flex">
-<span>def <span class="ident">get_screened_boundaries</span></span>(<span>self, Xmin: numpy.ndarray, clusters: numpy.ndarray) ‑> list[numpy.ndarray]</span>
+<span>def <span class="ident">get_screened_boundaries</span></span>(<span>self, X_min: numpy.ndarray, clusters: numpy.ndarray) ‑> list[numpy.ndarray]</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_screened_boundaries(self, Xmin: np.ndarray, clusters: np.ndarray) -&gt; list[np.ndarray]:
+<pre><code class="python">def get_screened_boundaries(
+    self, X_min: np.ndarray, clusters: np.ndarray
+) -&gt; list[np.ndarray]:
     &#34;&#34;&#34;
     Return detected boundary samples of the minority class clusters.
 
@@ -392,7 +434,7 @@ remove outliers from the minority class.</p>
 
     Parameters
     ----------
-    Xmin : np.ndarray
+    X_min : np.ndarray
         Minority class samples.
     clusters : np.ndarray
         Array of cluster labels corresponding to each sample.
@@ -402,14 +444,14 @@ remove outliers from the minority class.</p>
     list of np.ndarray
         List containing arrays of boundary samples for each cluster.
     &#34;&#34;&#34;
-    return self._screenBoundarySamples(Xmin, clusters)</code></pre>
+    return self._screen_boundary_samples(X_min, clusters)</code></pre>
 </details>
 <div class="desc"><p>Return detected boundary samples of the minority class clusters.</p>
 <p>Identifies boundary samples based on deviation from cluster means and
 standard deviations, which are used later to guide synthetic sample generation.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>Xmin</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dt><strong><code>X_min</code></strong> :&ensp;<code>np.ndarray</code></dt>
 <dd>Minority class samples.</dd>
 <dt><strong><code>clusters</code></strong> :&ensp;<code>np.ndarray</code></dt>
 <dd>Array of cluster labels corresponding to each sample.</dd>
@@ -436,7 +478,13 @@ standard deviations, which are used later to guide synthetic sample generation.<
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#visual_dabpy">Visual_DAB.py</a><ul>
+<li><a href="#references">References</a></li>
+<li><a href="#author">Author</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
