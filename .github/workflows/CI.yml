@@ -21,10 +21,9 @@ jobs:
         run: uv run pytest tests/ -vv --cov=classes --cov-config=pyproject.toml
       - name: doc
         run: uv run pdoc3 --html classes --output-dir docs --force
-      - name: Push docs
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs
-          git commit -m "Update docs"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:master
+      - name: Deploy docs to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+
