@@ -54,6 +54,8 @@ class DAB_SMOTE:
         Method used to calculate cluster centers ('means' or 'density').
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
+    multiclass : bool, default=False
+        If True, the method is applied to each minority class separately.
 
     Attributes
     ----------
