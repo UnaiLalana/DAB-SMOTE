@@ -21,9 +21,3 @@ jobs:
         run: uv run pytest tests/ -vv --cov=classes --cov-config=pyproject.toml
       - name: doc
         run: uv run pdoc3 --html classes --output-dir docs --force
-      - name: Deploy docs to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-
