@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>classes API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="classes Package
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,42 @@ el.replaceWith(d);
 <h1 class="title">Package <code>classes</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="classes-package">classes Package</h1>
+<p>This package contains the core classes for working with the DAB-SMOTE
+(Density Aware Borderline Synthetic Minority Oversampling Technique)
+algorithm and its visualization/debugging extension.</p>
+<h2 id="modules">Modules</h2>
+<ul>
+<li>DAB_SMOTE
+Implements the main DAB-SMOTE algorithm, providing methods for
+generating synthetic samples to address class imbalance problems.</li>
+<li>Visual_DAB
+Extends DAB_SMOTE to provide visualization and debugging capabilities,
+allowing step-by-step inspection of the synthetic data generation process.</li>
+</ul>
+<h2 id="purpose">Purpose</h2>
+<p>The package is designed to:
+- Provide a data-level resampling approach for imbalanced datasets.
+- Enable users to inspect, visualize, and debug the internal steps of
+the DAB-SMOTE algorithm.
+- Serve as a foundation for further extensions or modifications of
+DAB-SMOTE.</p>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Users can import specific classes directly from this package:</li>
+</ul>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>from classes.DAB_SMOTE import DAB_SMOTE
+from classes.Visual_DAB import Visual_DAB</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<ul>
+<li>The design supports replacing or extending the dataset handling as long
+as the interface matches the expected attributes and methods.</li>
+</ul>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
@@ -66,7 +103,14 @@ el.replaceWith(d);
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#classes-package">classes Package</a><ul>
+<li><a href="#modules">Modules</a></li>
+<li><a href="#purpose">Purpose</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
