@@ -82,6 +82,7 @@ class DAB_SMOTE:
         random_state: int = 42,
         solver: str = "means",
         progress: bool = False,
+        multiclass: bool = False,
     ) -> None:
         self._r = r
         self._dist_method = dist_method
@@ -97,6 +98,7 @@ class DAB_SMOTE:
         self._n_removed = -1
         self._random_state = random_state
         self._progress = progress
+        self._multiclass = multiclass
         self._number_of_clusters = 0
         self._number_of_examples_generated = 0
         self._border_samples_percent = 0
