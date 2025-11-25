@@ -19,5 +19,3 @@ jobs:
         run: uv run python -m pylint classes/*.py
       - name: test
         run: uv run pytest tests/ -vv --cov=classes --cov-config=pyproject.toml
-      - name: doc
-        run: uv run pdoc3 --html classes --output-dir docs --force
