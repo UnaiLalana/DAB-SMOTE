@@ -1,5 +1,7 @@
 # DAB-SMOTE: Density-Aware Borderline SMOTE
 
+<div style="text-align: justify"> 
+
 **Authors:** Unai Lalana Morales & José Antonio Sanz Delgado  
 
 DAB-SMOTE is an advanced oversampling method for handling classification problems with imbalanced classes. Its goal is to improve classifier performance by generating synthetic samples of the minority class, taking into account the distribution, density, and clusters boundaries [1].
@@ -11,6 +13,7 @@ DAB-SMOTE combines noise detection techniques, density-based clustering (DBSCAN)
 - **Clustering:** Grouping of the minority class using DBSCAN, with the option of centroid by mean or densest point.
 - **Boundary detection:** Identification of samples at the boundary of each cluster.
 - **Sample generation:** Creation of new synthetic instances from the boundary and centroid of each cluster, respecting the local structure.
+
 
 ## Repository Structure
 
@@ -106,3 +109,4 @@ The benchmarking datasets are in `data/benchmarks/` and follow the .dat format. 
 ---
 
 For any questions or contributions, contact the authors.
+</div>
