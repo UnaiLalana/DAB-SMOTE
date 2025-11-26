@@ -27,7 +27,7 @@ The package is designed to:
 Notes
 -----
 - Users can import specific classes directly from this package:
-  
+
   >>> from classes.DAB_SMOTE import DAB_SMOTE
   >>> from classes.Visual_DAB import Visual_DAB
 
