@@ -26,15 +26,20 @@ Author
 Unai Lalana
 """
 
+import sys
+import os
+
 import numpy as np
-from . import DAB_SMOTE
+
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..", "classes")))
+from .DAB_SMOTE import DAB_SMOTE
 
 
-class Visual_DAB(DAB_SMOTE.DAB_SMOTE):
+class Visual_DAB(DAB_SMOTE):
     """
     A visualization and debugging extension of the DAB_SMOTE oversampling algorithm.
 
-    This class inherits from :class:`DAB_SMOTE.DAB_SMOTE` and exposes internal
+    This class inherits from :class:`DAB_SMOTE` and exposes internal
     debugging methods that are otherwise private in the parent class.
     It is intended for visualization, inspection, and step-by-step analysis of
     the synthetic data generation process.
@@ -66,6 +71,7 @@ class Visual_DAB(DAB_SMOTE.DAB_SMOTE):
             Keyword arguments forwarded to the :class:`DAB_SMOTE.DAB_SMOTE` constructor.
         """
         super().__init__(**kwargs)
+        self._solver = "means"
 
     def get_removed_samples(self, X_min: np.ndarray) -> np.ndarray:
         """

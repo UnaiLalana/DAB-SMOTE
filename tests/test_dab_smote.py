@@ -161,3 +161,34 @@ def test_generate_new_samples_returns_none_when_max_iter_exceeded():
     result = dab._generate_new_samples(X, boundaries, clusters, centers, N=10)
 
     assert result is None
+
+def test_generate_new_samples_multiclass():
+    """
+    Test _generate_new_samples with multiclass data.
+    """
+    X = []
+    y = []
+
+    X.append(np.random.normal(loc=(0, 0), scale=1.0, size=(1500, 2)))
+    y.append(np.zeros(1500))
+
+    X.append(np.random.normal(loc=(3, 3), scale=0.5, size=(100//2, 2)))
+    y.append(np.ones(100//2))
+    X.append(np.random.normal(loc=(-3, -3), scale=0.5, size=(100//2, 2)))
+    y.append(np.ones(100//2))
+
+    X.append(np.random.normal(loc=(-3, 3), scale=0.5, size=(75, 2)))
+    y.append(np.full(75, 2))
+
+    X.append(np.random.normal(loc=(3, -3), scale=0.5, size=(80, 2)))
+    y.append(np.full(80, 3))
+
+    X = np.vstack(X)
+    y = np.hstack(y)
+
+    dab = DAB_SMOTE()
+    
+    X_res, y_res = dab.fit_resample(X, y)
+    summary = dab.summary
+
+    assert summary["Multiclass"]

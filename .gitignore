@@ -1,5 +1,6 @@
 notebooks/__pycache__/
 classes/__pycache__/
+tests/__pycache__/
 data/benchmarks/
 venv/
 env/

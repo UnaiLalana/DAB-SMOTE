@@ -62,7 +62,7 @@ Universidad Publica de Navarra.</li>
 <dl>
 <dt id="classes.DAB_SMOTE.DAB_SMOTE"><code class="flex name class">
 <span>class <span class="ident">DAB_SMOTE</span></span>
-<span>(</span><span>r: float = 1.5,<br>dist_method: str = 'euclidean',<br>k: float = 1,<br>max_tries_until_change: int = 10,<br>max_iter: int = 10000,<br>random_state: int = 42,<br>solver: str = 'means',<br>progress: bool = False)</span>
+<span>(</span><span>r: float = 1.5,<br>dist_method: str = 'euclidean',<br>k: float = 1,<br>max_tries_until_change: int = 10,<br>max_iter: int = 10000,<br>random_state: int = 42,<br>solver: str = 'means',<br>progress: bool = False,<br>multiclass: bool = False)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -97,6 +97,8 @@ Universidad Publica de Navarra.</li>
         Method used to calculate cluster centers (&#39;means&#39; or &#39;density&#39;).
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
+    multiclass : bool, default=False
+        If True, the method is applied to each minority class separately.
 
     Attributes
     ----------
@@ -125,6 +127,7 @@ Universidad Publica de Navarra.</li>
         random_state: int = 42,
         solver: str = &#34;means&#34;,
         progress: bool = False,
+        multiclass: bool = False,
     ) -&gt; None:
         self._r = r
         self._dist_method = dist_method
@@ -140,6 +143,7 @@ Universidad Publica de Navarra.</li>
         self._n_removed = -1
         self._random_state = random_state
         self._progress = progress
+        self._multiclass = multiclass
         self._number_of_clusters = 0
         self._number_of_examples_generated = 0
         self._border_samples_percent = 0
@@ -451,6 +455,8 @@ Universidad Publica de Navarra.</li>
 <dd>Method used to calculate cluster centers ('means' or 'density').</dd>
 <dt><strong><code>progress</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
 <dd>If True, shows a progress bar during sample generation.</dd>
+<dt><strong><code>multiclass</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
+<dd>If True, the method is applied to each minority class separately.</dd>
 </dl>
 <h2 id="attributes">Attributes</h2>
 <dl>

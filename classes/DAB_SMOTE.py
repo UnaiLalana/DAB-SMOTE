@@ -98,6 +98,7 @@ class DAB_SMOTE:
         self._random_state = random_state
         self._progress = progress
         self._number_of_clusters = 0
+        self._multiclass = False
         self._number_of_examples_generated = 0
         self._border_samples_percent = 0
         self._status_code = 0
@@ -332,24 +333,38 @@ class DAB_SMOTE:
             Resampled class labels.
         """
         np.random.seed(self._random_state)
+
         labels, counts = np.unique(y, return_counts=True)
-        min_label = labels[np.argmin(counts)]
-        X_min = X[y == min_label]
-        N = np.max(counts) - np.min(counts)
+        major_classes = labels[counts == np.max(counts)]
+        minority_labels = [
+            i for i, lbl in enumerate(labels) if lbl not in major_classes
+        ]
+        max_count = np.max(counts)
+        minority_counts = max_count - counts[minority_labels]
 
-        X_min_removed = self._remove_noisy_samples(X_min)
-        centers, clusters = self._clustering(X_min_removed)
-        boundaries = self._screen_boundary_samples(X_min_removed, clusters)
-        new_samples = self._generate_new_samples(
-            X_min_removed, boundaries, clusters, centers, int(N)
-        )
+        if len(minority_labels) > 1:
+            self._multiclass = True
 
-        if new_samples is None or new_samples.shape[0] == 0:
+        new_samples = []
+        for lbl, diff in zip(minority_labels, minority_counts):
+            X_min = X[y == labels[lbl]]
+            N = diff
+            X_min_removed = self._remove_noisy_samples(X_min)
+            centers, clusters = self._clustering(X_min_removed)
+            boundaries = self._screen_boundary_samples(X_min_removed, clusters)
+            new_samples.append(
+                self._generate_new_samples(
+                    X_min_removed, boundaries, clusters, centers, int(N)
+                )
+            )
+
+        new_samples = np.vstack(new_samples)
+        if new_samples[0][0] is None or new_samples.shape[0] == 0:
             self._status_code = 2
             return X, y
 
         X_new = np.vstack((X, new_samples))
-        y_new = np.hstack((y, np.array([min_label] * new_samples.shape[0])))
+        y_new = np.hstack((y, labels[np.repeat(minority_labels, minority_counts)]))
         self._status_code = 1
         return X_new, y_new
 
@@ -370,6 +385,7 @@ class DAB_SMOTE:
         }.get(self._status_code)
 
         summary = {
+            "Multiclass": self._multiclass,
             "Status code": self._status_code,
             "Status message": status_msg,
             "Number of examples removed": self._n_removed,
