@@ -54,8 +54,6 @@ class DAB_SMOTE:
         Method used to calculate cluster centers ('means' or 'density').
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
-    multiclass : bool, default=False
-        If True, the method is applied to each minority class separately.
 
     Attributes
     ----------
@@ -84,7 +82,6 @@ class DAB_SMOTE:
         random_state: int = 42,
         solver: str = "means",
         progress: bool = False,
-        multiclass: bool = False,
     ) -> None:
         self._r = r
         self._dist_method = dist_method
@@ -100,7 +97,6 @@ class DAB_SMOTE:
         self._n_removed = -1
         self._random_state = random_state
         self._progress = progress
-        self._multiclass = multiclass
         self._number_of_clusters = 0
         self._number_of_examples_generated = 0
         self._border_samples_percent = 0
@@ -337,6 +333,17 @@ class DAB_SMOTE:
         """
         np.random.seed(self._random_state)
         labels, counts = np.unique(y, return_counts=True)
+        major_classes = labels[counts == np.max(counts)]
+        minority_labels = [i for i, lbl in enumerate(labels) if lbl not in major_classes]
+        max_count = np.max(counts)
+        minority_counts = max_count - counts[minority_labels]
+
+        for lbl, diff in zip(labels[minority_labels], minority_counts):
+            print(f"  Class {int(lbl)}: missing {diff} examples")
+        return X, y
+
+
+
         min_label = labels[np.argmin(counts)]
         X_min = X[y == min_label]
         N = np.max(counts) - np.min(counts)
