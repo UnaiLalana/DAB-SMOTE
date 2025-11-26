@@ -1,6 +1,9 @@
 [MASTER]
 ignore=dataset.py
 
+[MESSAGES CONTROL]
+disable = import-error, wrong-import-position
+
 [BASIC]
 module-rgx=([a-z][a-z0-9_]*|[A-Z]+(_[A-Z0-9]+)*|[A-Z][a-z0-9]+(_[A-Z0-9]+)*)$
 class-rgx=([a-z][a-z0-9_]*|[A-Z]+(_[A-Z0-9]+)*|[A-Z][a-z0-9]+(_[A-Z0-9]+)*)$
