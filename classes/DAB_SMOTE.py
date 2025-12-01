@@ -327,9 +327,9 @@ class DAB_SMOTE:
 
         Returns
         -------
-        Xnew : ndarray
+        X_new : ndarray
             Resampled feature matrix.
-        ynew : ndarray
+        y_new : ndarray
             Resampled class labels.
         """
         np.random.seed(self._random_state)
