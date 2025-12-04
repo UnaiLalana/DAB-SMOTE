@@ -358,13 +358,14 @@ class DAB_SMOTE:
                 )
             )
 
+        n_samples_per_class = np.array([len(arr) for arr in new_samples])
         new_samples = np.vstack(new_samples)
         if new_samples[0][0] is None or new_samples.shape[0] == 0:
             self._status_code = 2
             return X, y
 
         X_new = np.vstack((X, new_samples))
-        y_new = np.hstack((y, labels[np.repeat(minority_labels, minority_counts)]))
+        y_new = np.hstack((y, labels[np.repeat(minority_labels, n_samples_per_class)]))
         self._status_code = 1
         return X_new, y_new
 
