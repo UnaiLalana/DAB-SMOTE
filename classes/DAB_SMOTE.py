@@ -156,10 +156,10 @@ class DAB_SMOTE:
             Boundary samples detected per cluster.
         """
         k = self._k
-        etiqueta_cluster = np.unique(clusters)
-        boundaries_totales = []
+        cluster_label = np.unique(clusters)
+        all_boundaries = []
 
-        for x in etiqueta_cluster:
+        for x in cluster_label:
             X_min_cl = X_min[clusters == x]
             ajs = np.mean(X_min_cl, axis=0)
             ojs = np.std(X_min_cl, axis=0)
@@ -168,10 +168,10 @@ class DAB_SMOTE:
                 for i in range(X_min_cl.shape[0]):
                     if np.abs(X_min_cl[i, j] - ajs[j]) > (ojs[j] * k):
                         boundaries.append(X_min_cl[i])
-            boundaries_totales.append(boundaries)
+            all_boundaries.append(boundaries)
 
-        self._border_samples_percent = len(boundaries_totales) / X_min.shape[0]
-        return boundaries_totales
+        self._border_samples_percent = len(all_boundaries) / X_min.shape[0]
+        return all_boundaries
 
     def _clustering(self, X_min: np.ndarray) -> tuple:
         """
@@ -259,17 +259,32 @@ class DAB_SMOTE:
             Array of new synthetic samples.
         """
         new_samples = []
-        etiqueta_cluster = np.unique(clusters)
+        cluster_label = np.unique(clusters)
         cluster_map = {
             x: (X_min[clusters == x], np.array(boundaries[x]), centers[x])
-            for x in etiqueta_cluster
+            for x in cluster_label
         }
         cluster_cycle = []
 
-        for x in etiqueta_cluster:
+        cluster_sizes = [X_min[clusters == x].shape[0] for x in cluster_label]
+        total_size = sum(cluster_sizes)
+
+        raw_quota = [(size * N) / total_size for size in cluster_sizes]
+
+        base_quota = [int(np.floor(q)) for q in raw_quota]
+
+        residuals = [q - b for q, b in zip(raw_quota, base_quota)]
+
+        missing = N - sum(base_quota)
+
+        if missing > 0:
+            idxs = np.argsort(residuals)[::-1]
+            for i in idxs[:missing]:
+                base_quota[i] += 1
+
+        for x, quota in zip(cluster_label, base_quota):
             X_min_cl, boundaries_cl, cl = cluster_map[x]
-            n_samples = int(np.round(X_min_cl.shape[0] * N / X_min.shape[0]))
-            cluster_cycle.extend([(x, boundaries_cl, X_min_cl, cl)] * n_samples)
+            cluster_cycle.extend([(x, boundaries_cl, X_min_cl, cl)] * quota)
 
         np.random.shuffle(cluster_cycle)
         iterable = (
@@ -362,7 +377,6 @@ class DAB_SMOTE:
         if new_samples[0][0] is None or new_samples.shape[0] == 0:
             self._status_code = 2
             return X, y
-
         X_new = np.vstack((X, new_samples))
         y_new = np.hstack((y, labels[np.repeat(minority_labels, minority_counts)]))
         self._status_code = 1
