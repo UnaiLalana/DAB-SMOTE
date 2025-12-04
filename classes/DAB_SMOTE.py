@@ -357,8 +357,7 @@ class DAB_SMOTE:
         max_count = np.max(counts)
         minority_counts = max_count - counts[minority_labels]
 
-        if len(minority_labels) > 1:
-            self._multiclass = True
+        self._multiclass = len(minority_labels) > 1
 
         new_samples = []
         for lbl, diff in zip(minority_labels, minority_counts):
