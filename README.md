@@ -89,7 +89,7 @@ y = np.array(df.iloc[:, -1])
 # Instantiate and apply DAB-SMOTE
 dab = DAB_SMOTE(dist_method='euclidean', k=2, progress=True)
 X_res, y_res = dab.fit_resample(X, y)
-dab.summary()
+dab.summary
 ```
 
 For complete examples and visualizations, see the notebooks in the `notebooks/` folder.
