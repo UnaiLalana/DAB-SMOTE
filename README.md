@@ -113,6 +113,7 @@ The datasets used in the notebooks should be placed in `data/`. Use the utilitie
 
 ## References and Citation
 [1]	U. Lalana and J. A. S. Delgado, ‘Estudio, análisis e implementación de FSDR-SMOTE, técnica de sobremuestreo para problemas de clasificación desbalanceados’, Universidad Publica de Navarra.
+https://academica-e.unavarra.es/entities/publication/94317fe9-1d28-408e-933b-1c3195a9c983
 
 ---
 
