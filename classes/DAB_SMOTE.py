@@ -44,6 +44,10 @@ class DAB_SMOTE:
         Distance metric used for noise filtering.
     k : int, default=1
         Standard deviation multiplier for boundary sample detection.
+    eps : float, default=0.75
+        Epsilon parameter for DBSCAN clustering.
+    min_samples : int, default=10
+        Minimum number of samples required to form a cluster.
     max_tries_until_change : int, default=10
         Maximum number of retries before changing boundary samples.
     max_iter : int, default=10000
@@ -77,6 +81,8 @@ class DAB_SMOTE:
         r: float = 1.5,
         dist_method: str = "euclidean",
         k: float = 1,
+        eps: float = 0.75,
+        min_samples: int = 10,
         max_tries_until_change: int = 10,
         max_iter: int = 10000,
         random_state: int = 42,
@@ -91,6 +97,8 @@ class DAB_SMOTE:
             "manhattan": lambda a, b: np.sum(np.abs(a - b)),
             "chebyshev": lambda a, b: np.max(np.abs(a - b)),
         }
+        self._eps = eps
+        self._min_samples = min_samples
         self._max_tries_until_change = max_tries_until_change
         self._max_iter = max_iter
         self._solver = solver
@@ -189,7 +197,7 @@ class DAB_SMOTE:
         clusters : ndarray
             Cluster labels assigned to each sample.
         """
-        db = DBSCAN(eps=0.75, min_samples=10).fit(X_min)
+        db = DBSCAN(eps=self._eps, min_samples=self._min_samples).fit(X_min)
         clusters = db.labels_
 
         noise_indices = np.where(clusters == -1)[0]
@@ -217,7 +225,7 @@ class DAB_SMOTE:
         elif self._solver == "density":
             for cluster in unique_clusters:
                 cluster_points = X_min[clusters == cluster]
-                nbrs = NearestNeighbors(radius=0.75).fit(cluster_points)
+                nbrs = NearestNeighbors(radius=self._eps).fit(cluster_points)
                 radii_neighbors = nbrs.radius_neighbors(
                     cluster_points, return_distance=False
                 )
