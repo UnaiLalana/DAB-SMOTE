@@ -30,11 +30,16 @@ class DAB_SMOTE:
     """
     Density and Boundary-based Synthetic Minority Oversampling Technique (DAB-SMOTE).
 
-    This method generates new synthetic samples for the minority class by:
-    1. Removing noisy samples using IQR-based filtering.
-    2. Clustering the remaining data with DBSCAN.
-    3. Detecting boundary samples within clusters.
-    4. Interpolating between boundary, cluster, and central points to create synthetic samples.
+    This method generates new synthetic samples for the minority class(es). It supports both
+    binary and multiclass classification problems and automatically detects the type of problem
+    based on the input data.
+
+    The process involves:
+    1. Identifying minority class(es).
+    2. Removing noisy samples using IQR-based filtering.
+    3. Clustering the remaining data with DBSCAN.
+    4. Detecting boundary samples within clusters.
+    5. Interpolating between boundary, cluster, and central points to create synthetic samples.
 
     Parameters
     ----------
@@ -339,7 +344,11 @@ class DAB_SMOTE:
 
     def fit_resample(self, X: np.ndarray, y: np.ndarray) -> tuple:
         """
-        Fit and resample the dataset by generating synthetic minority samples.
+        Fit and resample the dataset by generating synthetic samples for the minority class(es).
+
+        This method automatically detects whether the problem is binary or multiclass. In the case
+        of multiclass problems, it iterates over each minority class to generate synthetic samples
+        until they reach the count of the majority class.
 
         Parameters
         ----------
@@ -394,10 +403,13 @@ class DAB_SMOTE:
         """
         Print and return a summary of the resampling process.
 
+        The summary includes information about whether the problem was detected as
+        multiclass, the status of the process, and other key metrics.
+
         Returns
         -------
         dict
-            Summary including key performance indicators.
+            Summary including key performance indicators and problem type detection.
         """
         status_msg = {
             0: "Resample function not called.",

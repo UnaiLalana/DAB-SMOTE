@@ -75,14 +75,15 @@ Universidad Publica de Navarra.</li>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Visual_DAB(DAB_SMOTE.DAB_SMOTE):
+<pre><code class="python">class Visual_DAB(DAB_SMOTE):
     &#34;&#34;&#34;
     A visualization and debugging extension of the DAB_SMOTE oversampling algorithm.
 
-    This class inherits from :class:`DAB_SMOTE.DAB_SMOTE` and exposes internal
+    This class inherits from :class:`DAB_SMOTE` and exposes internal
     debugging methods that are otherwise private in the parent class.
     It is intended for visualization, inspection, and step-by-step analysis of
-    the synthetic data generation process.
+    the synthetic data generation process. Like its parent, it supports both
+    binary and multiclass classification problems.
 
     Parameters
     ----------
@@ -111,6 +112,7 @@ Universidad Publica de Navarra.</li>
             Keyword arguments forwarded to the :class:`DAB_SMOTE.DAB_SMOTE` constructor.
         &#34;&#34;&#34;
         super().__init__(**kwargs)
+        self._solver = &#34;means&#34;
 
     def get_removed_samples(self, X_min: np.ndarray) -&gt; np.ndarray:
         &#34;&#34;&#34;
@@ -219,10 +221,11 @@ Universidad Publica de Navarra.</li>
         return self._generate_new_samples(X_min, borders, clusters, centers, N)</code></pre>
 </details>
 <div class="desc"><p>A visualization and debugging extension of the DAB_SMOTE oversampling algorithm.</p>
-<p>This class inherits from :class:<code>DAB_SMOTE.DAB_SMOTE</code> and exposes internal
+<p>This class inherits from :class:<code>DAB_SMOTE</code> and exposes internal
 debugging methods that are otherwise private in the parent class.
 It is intended for visualization, inspection, and step-by-step analysis of
-the synthetic data generation process.</p>
+the synthetic data generation process. Like its parent, it supports both
+binary and multiclass classification problems.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>

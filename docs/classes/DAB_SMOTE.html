@@ -62,7 +62,7 @@ Universidad Publica de Navarra.</li>
 <dl>
 <dt id="classes.DAB_SMOTE.DAB_SMOTE"><code class="flex name class">
 <span>class <span class="ident">DAB_SMOTE</span></span>
-<span>(</span><span>r: float = 1.5,<br>dist_method: str = 'euclidean',<br>k: float = 1,<br>max_tries_until_change: int = 10,<br>max_iter: int = 10000,<br>random_state: int = 42,<br>solver: str = 'means',<br>progress: bool = False,<br>multiclass: bool = False)</span>
+<span>(</span><span>r: float = 1.5,<br>dist_method: str = 'euclidean',<br>k: float = 1,<br>eps: float = 0.75,<br>min_samples: int = 10,<br>max_tries_until_change: int = 10,<br>max_iter: int = 10000,<br>random_state: int = 42,<br>solver: str = 'means',<br>progress: bool = False)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -73,11 +73,16 @@ Universidad Publica de Navarra.</li>
     &#34;&#34;&#34;
     Density and Boundary-based Synthetic Minority Oversampling Technique (DAB-SMOTE).
 
-    This method generates new synthetic samples for the minority class by:
-    1. Removing noisy samples using IQR-based filtering.
-    2. Clustering the remaining data with DBSCAN.
-    3. Detecting boundary samples within clusters.
-    4. Interpolating between boundary, cluster, and central points to create synthetic samples.
+    This method generates new synthetic samples for the minority class(es). It supports both
+    binary and multiclass classification problems and automatically detects the type of problem
+    based on the input data.
+
+    The process involves:
+    1. Identifying minority class(es).
+    2. Removing noisy samples using IQR-based filtering.
+    3. Clustering the remaining data with DBSCAN.
+    4. Detecting boundary samples within clusters.
+    5. Interpolating between boundary, cluster, and central points to create synthetic samples.
 
     Parameters
     ----------
@@ -87,6 +92,10 @@ Universidad Publica de Navarra.</li>
         Distance metric used for noise filtering.
     k : int, default=1
         Standard deviation multiplier for boundary sample detection.
+    eps : float, default=0.75
+        Epsilon parameter for DBSCAN clustering.
+    min_samples : int, default=10
+        Minimum number of samples required to form a cluster.
     max_tries_until_change : int, default=10
         Maximum number of retries before changing boundary samples.
     max_iter : int, default=10000
@@ -97,8 +106,6 @@ Universidad Publica de Navarra.</li>
         Method used to calculate cluster centers (&#39;means&#39; or &#39;density&#39;).
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
-    multiclass : bool, default=False
-        If True, the method is applied to each minority class separately.
 
     Attributes
     ----------
@@ -122,12 +129,13 @@ Universidad Publica de Navarra.</li>
         r: float = 1.5,
         dist_method: str = &#34;euclidean&#34;,
         k: float = 1,
+        eps: float = 0.75,
+        min_samples: int = 10,
         max_tries_until_change: int = 10,
         max_iter: int = 10000,
         random_state: int = 42,
         solver: str = &#34;means&#34;,
         progress: bool = False,
-        multiclass: bool = False,
     ) -&gt; None:
         self._r = r
         self._dist_method = dist_method
@@ -137,14 +145,16 @@ Universidad Publica de Navarra.</li>
             &#34;manhattan&#34;: lambda a, b: np.sum(np.abs(a - b)),
             &#34;chebyshev&#34;: lambda a, b: np.max(np.abs(a - b)),
         }
+        self._eps = eps
+        self._min_samples = min_samples
         self._max_tries_until_change = max_tries_until_change
         self._max_iter = max_iter
         self._solver = solver
         self._n_removed = -1
         self._random_state = random_state
         self._progress = progress
-        self._multiclass = multiclass
         self._number_of_clusters = 0
+        self._multiclass = False
         self._number_of_examples_generated = 0
         self._border_samples_percent = 0
         self._status_code = 0
@@ -202,10 +212,10 @@ Universidad Publica de Navarra.</li>
             Boundary samples detected per cluster.
         &#34;&#34;&#34;
         k = self._k
-        etiqueta_cluster = np.unique(clusters)
-        boundaries_totales = []
+        cluster_label = np.unique(clusters)
+        all_boundaries = []
 
-        for x in etiqueta_cluster:
+        for x in cluster_label:
             X_min_cl = X_min[clusters == x]
             ajs = np.mean(X_min_cl, axis=0)
             ojs = np.std(X_min_cl, axis=0)
@@ -214,10 +224,10 @@ Universidad Publica de Navarra.</li>
                 for i in range(X_min_cl.shape[0]):
                     if np.abs(X_min_cl[i, j] - ajs[j]) &gt; (ojs[j] * k):
                         boundaries.append(X_min_cl[i])
-            boundaries_totales.append(boundaries)
+            all_boundaries.append(boundaries)
 
-        self._border_samples_percent = len(boundaries_totales) / X_min.shape[0]
-        return boundaries_totales
+        self._border_samples_percent = len(all_boundaries) / X_min.shape[0]
+        return all_boundaries
 
     def _clustering(self, X_min: np.ndarray) -&gt; tuple:
         &#34;&#34;&#34;
@@ -235,7 +245,7 @@ Universidad Publica de Navarra.</li>
         clusters : ndarray
             Cluster labels assigned to each sample.
         &#34;&#34;&#34;
-        db = DBSCAN(eps=0.75, min_samples=10).fit(X_min)
+        db = DBSCAN(eps=self._eps, min_samples=self._min_samples).fit(X_min)
         clusters = db.labels_
 
         noise_indices = np.where(clusters == -1)[0]
@@ -263,7 +273,7 @@ Universidad Publica de Navarra.</li>
         elif self._solver == &#34;density&#34;:
             for cluster in unique_clusters:
                 cluster_points = X_min[clusters == cluster]
-                nbrs = NearestNeighbors(radius=0.75).fit(cluster_points)
+                nbrs = NearestNeighbors(radius=self._eps).fit(cluster_points)
                 radii_neighbors = nbrs.radius_neighbors(
                     cluster_points, return_distance=False
                 )
@@ -305,17 +315,32 @@ Universidad Publica de Navarra.</li>
             Array of new synthetic samples.
         &#34;&#34;&#34;
         new_samples = []
-        etiqueta_cluster = np.unique(clusters)
+        cluster_label = np.unique(clusters)
         cluster_map = {
             x: (X_min[clusters == x], np.array(boundaries[x]), centers[x])
-            for x in etiqueta_cluster
+            for x in cluster_label
         }
         cluster_cycle = []
 
-        for x in etiqueta_cluster:
+        cluster_sizes = [X_min[clusters == x].shape[0] for x in cluster_label]
+        total_size = sum(cluster_sizes)
+
+        raw_quota = [(size * N) / total_size for size in cluster_sizes]
+
+        base_quota = [int(np.floor(q)) for q in raw_quota]
+
+        residuals = [q - b for q, b in zip(raw_quota, base_quota)]
+
+        missing = N - sum(base_quota)
+
+        if missing &gt; 0:
+            idxs = np.argsort(residuals)[::-1]
+            for i in idxs[:missing]:
+                base_quota[i] += 1
+
+        for x, quota in zip(cluster_label, base_quota):
             X_min_cl, boundaries_cl, cl = cluster_map[x]
-            n_samples = int(np.round(X_min_cl.shape[0] * N / X_min.shape[0]))
-            cluster_cycle.extend([(x, boundaries_cl, X_min_cl, cl)] * n_samples)
+            cluster_cycle.extend([(x, boundaries_cl, X_min_cl, cl)] * quota)
 
         np.random.shuffle(cluster_cycle)
         iterable = (
@@ -362,7 +387,11 @@ Universidad Publica de Navarra.</li>
 
     def fit_resample(self, X: np.ndarray, y: np.ndarray) -&gt; tuple:
         &#34;&#34;&#34;
-        Fit and resample the dataset by generating synthetic minority samples.
+        Fit and resample the dataset by generating synthetic samples for the minority class(es).
+
+        This method automatically detects whether the problem is binary or multiclass. In the case
+        of multiclass problems, it iterates over each minority class to generate synthetic samples
+        until they reach the count of the majority class.
 
         Parameters
         ----------
@@ -373,30 +402,42 @@ Universidad Publica de Navarra.</li>
 
         Returns
         -------
-        Xnew : ndarray
+        X_new : ndarray
             Resampled feature matrix.
-        ynew : ndarray
+        y_new : ndarray
             Resampled class labels.
         &#34;&#34;&#34;
         np.random.seed(self._random_state)
+
         labels, counts = np.unique(y, return_counts=True)
-        min_label = labels[np.argmin(counts)]
-        X_min = X[y == min_label]
-        N = np.max(counts) - np.min(counts)
+        major_classes = labels[counts == np.max(counts)]
+        minority_labels = [
+            i for i, lbl in enumerate(labels) if lbl not in major_classes
+        ]
+        max_count = np.max(counts)
+        minority_counts = max_count - counts[minority_labels]
 
-        X_min_removed = self._remove_noisy_samples(X_min)
-        centers, clusters = self._clustering(X_min_removed)
-        boundaries = self._screen_boundary_samples(X_min_removed, clusters)
-        new_samples = self._generate_new_samples(
-            X_min_removed, boundaries, clusters, centers, int(N)
-        )
+        self._multiclass = len(minority_labels) &gt; 1
 
-        if new_samples is None or new_samples.shape[0] == 0:
+        new_samples = []
+        for lbl, diff in zip(minority_labels, minority_counts):
+            X_min = X[y == labels[lbl]]
+            N = diff
+            X_min_removed = self._remove_noisy_samples(X_min)
+            centers, clusters = self._clustering(X_min_removed)
+            boundaries = self._screen_boundary_samples(X_min_removed, clusters)
+            new_samples.append(
+                self._generate_new_samples(
+                    X_min_removed, boundaries, clusters, centers, int(N)
+                )
+            )
+
+        new_samples = np.vstack(new_samples)
+        if new_samples[0][0] is None or new_samples.shape[0] == 0:
             self._status_code = 2
             return X, y
-
         X_new = np.vstack((X, new_samples))
-        y_new = np.hstack((y, np.array([min_label] * new_samples.shape[0])))
+        y_new = np.hstack((y, labels[np.repeat(minority_labels, minority_counts)]))
         self._status_code = 1
         return X_new, y_new
 
@@ -405,10 +446,13 @@ Universidad Publica de Navarra.</li>
         &#34;&#34;&#34;
         Print and return a summary of the resampling process.
 
+        The summary includes information about whether the problem was detected as
+        multiclass, the status of the process, and other key metrics.
+
         Returns
         -------
         dict
-            Summary including key performance indicators.
+            Summary including key performance indicators and problem type detection.
         &#34;&#34;&#34;
         status_msg = {
             0: &#34;Resample function not called.&#34;,
@@ -417,6 +461,7 @@ Universidad Publica de Navarra.</li>
         }.get(self._status_code)
 
         summary = {
+            &#34;Multiclass&#34;: self._multiclass,
             &#34;Status code&#34;: self._status_code,
             &#34;Status message&#34;: status_msg,
             &#34;Number of examples removed&#34;: self._n_removed,
@@ -432,11 +477,15 @@ Universidad Publica de Navarra.</li>
         return summary</code></pre>
 </details>
 <div class="desc"><p>Density and Boundary-based Synthetic Minority Oversampling Technique (DAB-SMOTE).</p>
-<p>This method generates new synthetic samples for the minority class by:
-1. Removing noisy samples using IQR-based filtering.
-2. Clustering the remaining data with DBSCAN.
-3. Detecting boundary samples within clusters.
-4. Interpolating between boundary, cluster, and central points to create synthetic samples.</p>
+<p>This method generates new synthetic samples for the minority class(es). It supports both
+binary and multiclass classification problems and automatically detects the type of problem
+based on the input data.</p>
+<p>The process involves:
+1. Identifying minority class(es).
+2. Removing noisy samples using IQR-based filtering.
+3. Clustering the remaining data with DBSCAN.
+4. Detecting boundary samples within clusters.
+5. Interpolating between boundary, cluster, and central points to create synthetic samples.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>r</code></strong> :&ensp;<code>float</code>, default=<code>1.5</code></dt>
@@ -445,6 +494,10 @@ Universidad Publica de Navarra.</li>
 <dd>Distance metric used for noise filtering.</dd>
 <dt><strong><code>k</code></strong> :&ensp;<code>int</code>, default=<code>1</code></dt>
 <dd>Standard deviation multiplier for boundary sample detection.</dd>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code>, default=<code>0.75</code></dt>
+<dd>Epsilon parameter for DBSCAN clustering.</dd>
+<dt><strong><code>min_samples</code></strong> :&ensp;<code>int</code>, default=<code>10</code></dt>
+<dd>Minimum number of samples required to form a cluster.</dd>
 <dt><strong><code>max_tries_until_change</code></strong> :&ensp;<code>int</code>, default=<code>10</code></dt>
 <dd>Maximum number of retries before changing boundary samples.</dd>
 <dt><strong><code>max_iter</code></strong> :&ensp;<code>int</code>, default=<code>10000</code></dt>
@@ -455,8 +508,6 @@ Universidad Publica de Navarra.</li>
 <dd>Method used to calculate cluster centers ('means' or 'density').</dd>
 <dt><strong><code>progress</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
 <dd>If True, shows a progress bar during sample generation.</dd>
-<dt><strong><code>multiclass</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
-<dd>If True, the method is applied to each minority class separately.</dd>
 </dl>
 <h2 id="attributes">Attributes</h2>
 <dl>
@@ -491,10 +542,13 @@ def summary(self) -&gt; dict:
     &#34;&#34;&#34;
     Print and return a summary of the resampling process.
 
+    The summary includes information about whether the problem was detected as
+    multiclass, the status of the process, and other key metrics.
+
     Returns
     -------
     dict
-        Summary including key performance indicators.
+        Summary including key performance indicators and problem type detection.
     &#34;&#34;&#34;
     status_msg = {
         0: &#34;Resample function not called.&#34;,
@@ -503,6 +557,7 @@ def summary(self) -&gt; dict:
     }.get(self._status_code)
 
     summary = {
+        &#34;Multiclass&#34;: self._multiclass,
         &#34;Status code&#34;: self._status_code,
         &#34;Status message&#34;: status_msg,
         &#34;Number of examples removed&#34;: self._n_removed,
@@ -518,10 +573,12 @@ def summary(self) -&gt; dict:
     return summary</code></pre>
 </details>
 <div class="desc"><p>Print and return a summary of the resampling process.</p>
+<p>The summary includes information about whether the problem was detected as
+multiclass, the status of the process, and other key metrics.</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>dict</code></dt>
-<dd>Summary including key performance indicators.</dd>
+<dd>Summary including key performance indicators and problem type detection.</dd>
 </dl></div>
 </dd>
 </dl>
@@ -537,7 +594,11 @@ def summary(self) -&gt; dict:
 </summary>
 <pre><code class="python">def fit_resample(self, X: np.ndarray, y: np.ndarray) -&gt; tuple:
     &#34;&#34;&#34;
-    Fit and resample the dataset by generating synthetic minority samples.
+    Fit and resample the dataset by generating synthetic samples for the minority class(es).
+
+    This method automatically detects whether the problem is binary or multiclass. In the case
+    of multiclass problems, it iterates over each minority class to generate synthetic samples
+    until they reach the count of the majority class.
 
     Parameters
     ----------
@@ -548,34 +609,49 @@ def summary(self) -&gt; dict:
 
     Returns
     -------
-    Xnew : ndarray
+    X_new : ndarray
         Resampled feature matrix.
-    ynew : ndarray
+    y_new : ndarray
         Resampled class labels.
     &#34;&#34;&#34;
     np.random.seed(self._random_state)
+
     labels, counts = np.unique(y, return_counts=True)
-    min_label = labels[np.argmin(counts)]
-    X_min = X[y == min_label]
-    N = np.max(counts) - np.min(counts)
+    major_classes = labels[counts == np.max(counts)]
+    minority_labels = [
+        i for i, lbl in enumerate(labels) if lbl not in major_classes
+    ]
+    max_count = np.max(counts)
+    minority_counts = max_count - counts[minority_labels]
 
-    X_min_removed = self._remove_noisy_samples(X_min)
-    centers, clusters = self._clustering(X_min_removed)
-    boundaries = self._screen_boundary_samples(X_min_removed, clusters)
-    new_samples = self._generate_new_samples(
-        X_min_removed, boundaries, clusters, centers, int(N)
-    )
+    self._multiclass = len(minority_labels) &gt; 1
 
-    if new_samples is None or new_samples.shape[0] == 0:
+    new_samples = []
+    for lbl, diff in zip(minority_labels, minority_counts):
+        X_min = X[y == labels[lbl]]
+        N = diff
+        X_min_removed = self._remove_noisy_samples(X_min)
+        centers, clusters = self._clustering(X_min_removed)
+        boundaries = self._screen_boundary_samples(X_min_removed, clusters)
+        new_samples.append(
+            self._generate_new_samples(
+                X_min_removed, boundaries, clusters, centers, int(N)
+            )
+        )
+
+    new_samples = np.vstack(new_samples)
+    if new_samples[0][0] is None or new_samples.shape[0] == 0:
         self._status_code = 2
         return X, y
-
     X_new = np.vstack((X, new_samples))
-    y_new = np.hstack((y, np.array([min_label] * new_samples.shape[0])))
+    y_new = np.hstack((y, labels[np.repeat(minority_labels, minority_counts)]))
     self._status_code = 1
     return X_new, y_new</code></pre>
 </details>
-<div class="desc"><p>Fit and resample the dataset by generating synthetic minority samples.</p>
+<div class="desc"><p>Fit and resample the dataset by generating synthetic samples for the minority class(es).</p>
+<p>This method automatically detects whether the problem is binary or multiclass. In the case
+of multiclass problems, it iterates over each minority class to generate synthetic samples
+until they reach the count of the majority class.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>X</code></strong> :&ensp;<code>ndarray</code></dt>
@@ -585,9 +661,9 @@ def summary(self) -&gt; dict:
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>Xnew</code></strong> :&ensp;<code>ndarray</code></dt>
+<dt><strong><code>X_new</code></strong> :&ensp;<code>ndarray</code></dt>
 <dd>Resampled feature matrix.</dd>
-<dt><strong><code>ynew</code></strong> :&ensp;<code>ndarray</code></dt>
+<dt><strong><code>y_new</code></strong> :&ensp;<code>ndarray</code></dt>
 <dd>Resampled class labels.</dd>
 </dl></div>
 </dd>

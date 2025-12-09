@@ -42,7 +42,8 @@ class Visual_DAB(DAB_SMOTE):
     This class inherits from :class:`DAB_SMOTE` and exposes internal
     debugging methods that are otherwise private in the parent class.
     It is intended for visualization, inspection, and step-by-step analysis of
-    the synthetic data generation process.
+    the synthetic data generation process. Like its parent, it supports both
+    binary and multiclass classification problems.
 
     Parameters
     ----------
