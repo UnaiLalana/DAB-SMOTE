@@ -4,7 +4,7 @@
 
 **Authors:** Unai Lalana Morales & José Antonio Sanz Delgado  
 
-DAB-SMOTE is an advanced oversampling method for handling classification problems with imbalanced classes. Its goal is to improve classifier performance by generating synthetic samples of the minority class, taking into account the distribution, density, and clusters boundaries [1].
+DAB-SMOTE is an advanced oversampling method for handling classification problems with imbalanced classes. Its goal is to improve classifier performance by generating synthetic samples of the minority class(es), taking into account the distribution, density, and clusters boundaries [1]. It supports both **binary and multiclass** classification problems, automatically detecting the problem type from the data.
 
 ## Method Description
 DAB-SMOTE combines noise detection techniques, density-based clustering (DBSCAN), boundary analysis, and synthetic sample generation guided by the data structure. The method includes:
@@ -22,18 +22,23 @@ DAB-SMOTE combines noise detection techniques, density-based clustering (DBSCAN)
     - `dataset.py`: Utilities for reading datasets in .dat format.
     - `Visual_DAB.py`: A visualization and debugging extension of the DAB_SMOTE
 - `data/`
-    - `benchmarks/`: Classic imbalanced datasets for benchmarking.
+    - `benchmarks/`: Classic imbalanced datasets for benchmarking (Not included in the repository).
     - `initial_test/`: Example dataset for quick tests.
 - `notebooks/`
     - `InitialTest.ipynb`: Basic usage and visualization example.
     - `DensityBasedCenters.ipynb`: Advanced example with density-based centers.
     - `Visualization.ipynb`: Visualization notebook.
-    - `benchmarks/InitialBenchmarks.ipynb`: Simple benchmarking
+    - `multiclass.ipynb`: Example of multiclass classification.
+    - `benchmarks/`:
+        - `InitialBenchmarks.ipynb`: Simple benchmarking.
+        - `StatisticalBenchmarkEvaluation.ipynb`: Statistical evaluation of benchmarks.
 - `docs/`
-    - `DAB_SMOTE.html`: DAB_SMOTE class documentation.
-    - `dataset.html`: Dataset class documentation.
-    - `index.html`: Main index page.
-    - `Visual_DAB.html`: Visual_DAB class documentation.
+    - `index.html`: Redirect to main documentation.
+    - `classes/`
+        - `index.html`: Main documentation index.
+        - `DAB_SMOTE.html`: DAB_SMOTE class documentation.
+        - `dataset.html`: Dataset class documentation.
+        - `Visual_DAB.html`: Visual_DAB class documentation.
 - `tests/`
     - `test_dab_smote.py`: Test cases for DAB-SMOTE class.
     - `test_visual_dab.py`: Test cases for Visual-DAB class.
@@ -96,12 +101,15 @@ For complete examples and visualizations, see the notebooks in the `notebooks/` 
 
 ## Main Parameters
 - `dist_method`: Distance method for noise detection (`'euclidean'`, `'manhattan'`, `'chebyshev'`).
-- `k`: Borderline factor for borderline sample detection.
+- `r`: Multiplier for IQR (interquartile range) when filtering noisy samples.
+- `k`: Multiplier for standard deviation in boundary sample detection.
+- `eps`: Epsilon parameter for DBSCAN clustering (neighborhood distance).
+- `min_samples`: Minimum samples for DBSCAN to form a core point.
 - `solver`: Centroid strategy (`'means'` for mean, `'density'` for densest point).
 - `progress`: Shows progress bar.
 
 ## Datasets
-The benchmarking datasets are in `data/benchmarks/` and follow the .dat format. Use the utilities in `classes/dataset.py` to read them.
+The datasets used in the notebooks should be placed in `data/`. Use the utilities in `classes/dataset.py` to read them.
 
 ## References and Citation
 [1]	U. Lalana and J. A. S. Delgado, ‘Estudio, análisis e implementación de FSDR-SMOTE, técnica de sobremuestreo para problemas de clasificación desbalanceados’, Universidad Publica de Navarra.
