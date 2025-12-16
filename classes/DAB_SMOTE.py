@@ -54,6 +54,8 @@ class DAB_SMOTE:
         Epsilon parameter for DBSCAN clustering.
     min_samples : int, default=10
         Minimum number of samples required to form a cluster.
+    sampling_strategy : float | str | dict | list, default='auto'
+        Sampling strategy to use for generating synthetic samples.
     max_tries_until_change : int, default=10
         Maximum number of retries before changing boundary samples.
     max_iter : int, default=10000
@@ -89,6 +91,7 @@ class DAB_SMOTE:
         k: float = 1,
         eps: float = 0.75,
         min_samples: int = 10,
+        sampling_strategy: float | str | dict | list = "auto",
         max_tries_until_change: int = 10,
         max_iter: int = 10000,
         random_state: int = 42,
@@ -105,6 +108,7 @@ class DAB_SMOTE:
         }
         self._eps = eps
         self._min_samples = min_samples
+        self._sampling_strategy = sampling_strategy
         self._max_tries_until_change = max_tries_until_change
         self._max_iter = max_iter
         self._solver = solver
