@@ -20,6 +20,7 @@ Author
 Unai Lalana
 """
 
+from typing import Callable
 import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances_argmin_min
@@ -54,7 +55,8 @@ class DAB_SMOTE:
         Epsilon parameter for DBSCAN clustering.
     min_samples : int, default=10
         Minimum number of samples required to form a cluster.
-    sampling_strategy : float | str | dict | list, default='auto'
+    sampling_strategy :
+    float | str | dict | list | Callable[[np.ndarray, np.ndarray], dict], default='auto'
         Sampling strategy to use for generating synthetic samples.
     max_tries_until_change : int, default=10
         Maximum number of retries before changing boundary samples.
@@ -91,7 +93,9 @@ class DAB_SMOTE:
         k: float = 1,
         eps: float = 0.75,
         min_samples: int = 10,
-        sampling_strategy: float | str | dict | list = "auto",
+        sampling_strategy: (
+            float | str | dict | list | Callable[[np.ndarray, np.ndarray], dict]
+        ) = "auto",
         max_tries_until_change: int = 10,
         max_iter: int = 10000,
         random_state: int = 42,
@@ -347,6 +351,79 @@ class DAB_SMOTE:
         self._number_of_examples_generated = len(new_samples)
         return np.array(new_samples)
 
+    def _define_sampling_strategy(
+        self,
+        y: np.ndarray,
+        sampling_strategy: (
+            dict | str | float | list | Callable[[np.ndarray, np.ndarray], dict]
+        ) = "auto",
+    ) -> dict:
+        """
+        define the sampling strategy based on the input parameters.
+
+        Parameters
+        ----------
+        y : ndarray
+            Class labels.
+        sampling_strategy : dict | str | float | list | Callable[[np.ndarray, np.ndarray], dict]
+            Sampling strategy.
+
+        Returns
+        -------
+        dict
+            Dictionary of minority class labels and their corresponding counts.
+        """
+        labels, counts = np.unique(y, return_counts=True)
+        major_classes = labels[counts == np.max(counts)]
+
+        if sampling_strategy in ("auto", "not majority"):
+            minority_labels = [
+                i for i, lbl in enumerate(labels) if lbl not in major_classes
+            ]
+            max_count = np.max(counts)
+            minority_counts = max_count - counts[minority_labels]
+
+            self._multiclass = len(minority_labels) > 1
+            return {
+                labels[x]: y
+                for i, (x, y) in enumerate((zip(minority_labels, minority_counts)))
+            }
+
+        if sampling_strategy == "minority":
+            return {labels[np.argmin(counts)]: np.max(counts) - np.min(counts)}
+
+        if isinstance(sampling_strategy, dict):
+            return sampling_strategy
+
+        if isinstance(sampling_strategy, float):
+            if sampling_strategy < 0 or sampling_strategy > 1:
+                raise ValueError("Sampling strategy must be between 0 and 1.")
+            if len(labels) > 2:
+                raise ValueError(
+                    "Sampling strategy is not supported for multiclass problems."
+                )
+            return {
+                labels[np.argmin(counts)]: int(
+                    np.max(counts) * sampling_strategy - np.min(counts)
+                )
+            }
+
+        if isinstance(sampling_strategy, list):
+            minority_labels = np.setdiff1d(sampling_strategy, major_classes)
+            max_count = np.max(counts)
+            minority_counts = max_count - counts[minority_labels]
+
+            self._multiclass = len(minority_labels) > 1
+            return {
+                labels[x]: y
+                for i, (x, y) in enumerate((zip(minority_labels, minority_counts)))
+            }
+
+        if isinstance(sampling_strategy, Callable[[np.ndarray, np.ndarray], dict]):
+            return sampling_strategy(y)
+
+        raise ValueError("Invalid sampling strategy.")
+
     def fit_resample(self, X: np.ndarray, y: np.ndarray) -> tuple:
         """
         Fit and resample the dataset by generating synthetic samples for the minority class(es).
@@ -371,19 +448,13 @@ class DAB_SMOTE:
         """
         np.random.seed(self._random_state)
 
-        labels, counts = np.unique(y, return_counts=True)
-        major_classes = labels[counts == np.max(counts)]
-        minority_labels = [
-            i for i, lbl in enumerate(labels) if lbl not in major_classes
-        ]
-        max_count = np.max(counts)
-        minority_counts = max_count - counts[minority_labels]
-
-        self._multiclass = len(minority_labels) > 1
-
+        sample = self._define_sampling_strategy(
+            y, sampling_strategy=self._sampling_strategy
+        )
         new_samples = []
-        for lbl, diff in zip(minority_labels, minority_counts):
-            X_min = X[y == labels[lbl]]
+
+        for lbl, diff in sample.items():
+            X_min = X[y == lbl]
             N = diff
             X_min_removed = self._remove_noisy_samples(X_min)
             centers, clusters = self._clustering(X_min_removed)
@@ -399,7 +470,8 @@ class DAB_SMOTE:
             self._status_code = 2
             return X, y
         X_new = np.vstack((X, new_samples))
-        y_new = np.hstack((y, labels[np.repeat(minority_labels, minority_counts)]))
+
+        y_new = np.hstack((y, np.repeat(list(sample.keys()), list(sample.values()))))
         self._status_code = 1
         return X_new, y_new
 
