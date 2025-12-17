@@ -419,7 +419,7 @@ class DAB_SMOTE:
                 for i, (x, y) in enumerate((zip(minority_labels, minority_counts)))
             }
 
-        if isinstance(sampling_strategy, Callable[[np.ndarray, np.ndarray], dict]):
+        if callable(sampling_strategy):
             return sampling_strategy(y)
 
         raise ValueError("Invalid sampling strategy.")

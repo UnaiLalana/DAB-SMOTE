@@ -1,5 +1,6 @@
 import sys
 import os
+import pytest
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from classes.DAB_SMOTE import DAB_SMOTE
@@ -192,3 +193,78 @@ def test_generate_new_samples_multiclass():
     summary = dab.summary
 
     assert summary["Multiclass"]
+
+def test_sampling_strategy():
+    '''
+.    Test the DAB_SMOTE resampling with various sampling strategies.
+
+    Covers 'minority', dict, list, float, and callable strategies,
+    including error handling for invalid or unsupported strategies
+    and multiclass vs binary classification scenarios.
+    '''
+    X = []
+    y = []
+
+    X.append(np.random.normal(loc=(0, 0), scale=1.0, size=(1500, 2)))
+    y.append(np.zeros(1500))
+
+    X.append(np.random.normal(loc=(3, 3), scale=0.5, size=(100//2, 2)))
+    y.append(np.ones(100//2))
+    X.append(np.random.normal(loc=(-3, -3), scale=0.5, size=(100//2, 2)))
+    y.append(np.ones(100//2))
+
+    X.append(np.random.normal(loc=(-3, 3), scale=0.5, size=(75, 2)))
+    y.append(np.full(75, 2))
+
+    X.append(np.random.normal(loc=(3, -3), scale=0.5, size=(80, 2)))
+    y.append(np.full(80, 3))
+
+    X = np.vstack(X)
+    y = np.hstack(y)
+
+    dab = DAB_SMOTE(sampling_strategy = "minority")
+    X_res, y_res = dab.fit_resample(X, y)
+    new_samples = np.unique(y_res, return_counts=True)[1]
+
+    assert np.all(new_samples == [1500, 100, 1500, 80])
+
+    dab = DAB_SMOTE(sampling_strategy = {1: 1000, 3:200})
+    X_res, y_res = dab.fit_resample(X, y)
+    new_samples = np.unique(y_res, return_counts=True)[1]
+
+    assert np.all(new_samples == [1500, 1100, 75, 280])
+
+    dab = DAB_SMOTE(sampling_strategy = [1, 2])
+    X_res, y_res = dab.fit_resample(X, y)
+    new_samples = np.unique(y_res, return_counts=True)[1]
+
+    assert np.all(new_samples == [1500, 1500, 1500, 80])
+
+    with pytest.raises(ValueError, match="not supported for multiclass problems"):
+        dab = DAB_SMOTE(sampling_strategy = 0.5).fit_resample(X, y)
+
+    X = np.random.rand(100, 2)
+    y = np.array([0]*80 + [1]*20)
+
+    dab = DAB_SMOTE(sampling_strategy = 0.5)
+    X_res, y_res = dab.fit_resample(X, y)
+    new_samples = np.unique(y_res, return_counts=True)[1]
+
+    assert np.all(new_samples == [80, 40])
+
+    with pytest.raises(ValueError, match="between 0 and 1"):
+        dab = DAB_SMOTE(sampling_strategy = 1.5).fit_resample(X, y)
+
+    def func(y):
+        return {1: 60}
+    
+    dab = DAB_SMOTE(sampling_strategy = func)
+    X_res, y_res = dab.fit_resample(X, y)
+    new_samples = np.unique(y_res, return_counts=True)[1]
+
+    assert np.all(new_samples == [80, 80])
+
+    with pytest.raises(ValueError, match="Invalid sampling strategy"):
+        dab = DAB_SMOTE(sampling_strategy = "error").fit_resample(X, y)
+    
+    
