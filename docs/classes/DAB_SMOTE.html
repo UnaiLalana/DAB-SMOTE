@@ -63,7 +63,7 @@ Universidad Publica de Navarra.
 <dl>
 <dt id="classes.DAB_SMOTE.DAB_SMOTE"><code class="flex name class">
 <span>class <span class="ident">DAB_SMOTE</span></span>
-<span>(</span><span>r: float = 1.5,<br>dist_method: str = 'euclidean',<br>k: float = 1,<br>eps: float = 0.75,<br>min_samples: int = 10,<br>max_tries_until_change: int = 10,<br>max_iter: int = 10000,<br>random_state: int = 42,<br>solver: str = 'means',<br>progress: bool = False)</span>
+<span>(</span><span>r: float = 1.5,<br>dist_method: str = 'euclidean',<br>k: float = 1,<br>eps: float = 0.75,<br>min_samples: int = 10,<br>sampling_strategy: float | str | dict | list | Callable[[numpy.ndarray, numpy.ndarray], dict] = 'auto',<br>max_tries_until_change: int = 10,<br>max_iter: int = 10000,<br>random_state: int = 42,<br>solver: str = 'means',<br>progress: bool = False)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -97,6 +97,9 @@ Universidad Publica de Navarra.
         Epsilon parameter for DBSCAN clustering.
     min_samples : int, default=10
         Minimum number of samples required to form a cluster.
+    sampling_strategy :
+    float | str | dict | list | Callable[[np.ndarray, np.ndarray], dict], default=&#39;auto&#39;
+        Sampling strategy to use for generating synthetic samples.
     max_tries_until_change : int, default=10
         Maximum number of retries before changing boundary samples.
     max_iter : int, default=10000
@@ -132,6 +135,9 @@ Universidad Publica de Navarra.
         k: float = 1,
         eps: float = 0.75,
         min_samples: int = 10,
+        sampling_strategy: (
+            float | str | dict | list | Callable[[np.ndarray, np.ndarray], dict]
+        ) = &#34;auto&#34;,
         max_tries_until_change: int = 10,
         max_iter: int = 10000,
         random_state: int = 42,
@@ -148,6 +154,7 @@ Universidad Publica de Navarra.
         }
         self._eps = eps
         self._min_samples = min_samples
+        self._sampling_strategy = sampling_strategy
         self._max_tries_until_change = max_tries_until_change
         self._max_iter = max_iter
         self._solver = solver
@@ -386,6 +393,79 @@ Universidad Publica de Navarra.
         self._number_of_examples_generated = len(new_samples)
         return np.array(new_samples)
 
+    def _define_sampling_strategy(
+        self,
+        y: np.ndarray,
+        sampling_strategy: (
+            dict | str | float | list | Callable[[np.ndarray, np.ndarray], dict]
+        ) = &#34;auto&#34;,
+    ) -&gt; dict:
+        &#34;&#34;&#34;
+        define the sampling strategy based on the input parameters.
+
+        Parameters
+        ----------
+        y : ndarray
+            Class labels.
+        sampling_strategy : dict | str | float | list | Callable[[np.ndarray, np.ndarray], dict]
+            Sampling strategy.
+
+        Returns
+        -------
+        dict
+            Dictionary of minority class labels and their corresponding counts.
+        &#34;&#34;&#34;
+        labels, counts = np.unique(y, return_counts=True)
+        major_classes = labels[counts == np.max(counts)]
+
+        if sampling_strategy in (&#34;auto&#34;, &#34;not majority&#34;):
+            minority_labels = [
+                i for i, lbl in enumerate(labels) if lbl not in major_classes
+            ]
+            max_count = np.max(counts)
+            minority_counts = max_count - counts[minority_labels]
+
+            self._multiclass = len(minority_labels) &gt; 1
+            return {
+                labels[x]: y
+                for i, (x, y) in enumerate((zip(minority_labels, minority_counts)))
+            }
+
+        if sampling_strategy == &#34;minority&#34;:
+            return {labels[np.argmin(counts)]: np.max(counts) - np.min(counts)}
+
+        if isinstance(sampling_strategy, dict):
+            return sampling_strategy
+
+        if isinstance(sampling_strategy, float):
+            if sampling_strategy &lt; 0 or sampling_strategy &gt; 1:
+                raise ValueError(&#34;Sampling strategy must be between 0 and 1.&#34;)
+            if len(labels) &gt; 2:
+                raise ValueError(
+                    &#34;Sampling strategy is not supported for multiclass problems.&#34;
+                )
+            return {
+                labels[np.argmin(counts)]: int(
+                    np.max(counts) * sampling_strategy - np.min(counts)
+                )
+            }
+
+        if isinstance(sampling_strategy, list):
+            minority_labels = np.setdiff1d(sampling_strategy, major_classes)
+            max_count = np.max(counts)
+            minority_counts = max_count - counts[minority_labels]
+
+            self._multiclass = len(minority_labels) &gt; 1
+            return {
+                labels[x]: y
+                for i, (x, y) in enumerate((zip(minority_labels, minority_counts)))
+            }
+
+        if callable(sampling_strategy):
+            return sampling_strategy(y)
+
+        raise ValueError(&#34;Invalid sampling strategy.&#34;)
+
     def fit_resample(self, X: np.ndarray, y: np.ndarray) -&gt; tuple:
         &#34;&#34;&#34;
         Fit and resample the dataset by generating synthetic samples for the minority class(es).
@@ -410,19 +490,13 @@ Universidad Publica de Navarra.
         &#34;&#34;&#34;
         np.random.seed(self._random_state)
 
-        labels, counts = np.unique(y, return_counts=True)
-        major_classes = labels[counts == np.max(counts)]
-        minority_labels = [
-            i for i, lbl in enumerate(labels) if lbl not in major_classes
-        ]
-        max_count = np.max(counts)
-        minority_counts = max_count - counts[minority_labels]
-
-        self._multiclass = len(minority_labels) &gt; 1
-
+        sample = self._define_sampling_strategy(
+            y, sampling_strategy=self._sampling_strategy
+        )
         new_samples = []
-        for lbl, diff in zip(minority_labels, minority_counts):
-            X_min = X[y == labels[lbl]]
+
+        for lbl, diff in sample.items():
+            X_min = X[y == lbl]
             N = diff
             X_min_removed = self._remove_noisy_samples(X_min)
             centers, clusters = self._clustering(X_min_removed)
@@ -438,7 +512,8 @@ Universidad Publica de Navarra.
             self._status_code = 2
             return X, y
         X_new = np.vstack((X, new_samples))
-        y_new = np.hstack((y, labels[np.repeat(minority_labels, minority_counts)]))
+
+        y_new = np.hstack((y, np.repeat(list(sample.keys()), list(sample.values()))))
         self._status_code = 1
         return X_new, y_new
 
@@ -499,6 +574,9 @@ based on the input data.</p>
 <dd>Epsilon parameter for DBSCAN clustering.</dd>
 <dt><strong><code>min_samples</code></strong> :&ensp;<code>int</code>, default=<code>10</code></dt>
 <dd>Minimum number of samples required to form a cluster.</dd>
+<dt>sampling_strategy :</dt>
+<dt>float | str | dict | list | Callable[[np.ndarray, np.ndarray], dict], default='auto'</dt>
+<dt>Sampling strategy to use for generating synthetic samples.</dt>
 <dt><strong><code>max_tries_until_change</code></strong> :&ensp;<code>int</code>, default=<code>10</code></dt>
 <dd>Maximum number of retries before changing boundary samples.</dd>
 <dt><strong><code>max_iter</code></strong> :&ensp;<code>int</code>, default=<code>10000</code></dt>
@@ -617,19 +695,13 @@ multiclass, the status of the process, and other key metrics.</p>
     &#34;&#34;&#34;
     np.random.seed(self._random_state)
 
-    labels, counts = np.unique(y, return_counts=True)
-    major_classes = labels[counts == np.max(counts)]
-    minority_labels = [
-        i for i, lbl in enumerate(labels) if lbl not in major_classes
-    ]
-    max_count = np.max(counts)
-    minority_counts = max_count - counts[minority_labels]
-
-    self._multiclass = len(minority_labels) &gt; 1
-
+    sample = self._define_sampling_strategy(
+        y, sampling_strategy=self._sampling_strategy
+    )
     new_samples = []
-    for lbl, diff in zip(minority_labels, minority_counts):
-        X_min = X[y == labels[lbl]]
+
+    for lbl, diff in sample.items():
+        X_min = X[y == lbl]
         N = diff
         X_min_removed = self._remove_noisy_samples(X_min)
         centers, clusters = self._clustering(X_min_removed)
@@ -645,7 +717,8 @@ multiclass, the status of the process, and other key metrics.</p>
         self._status_code = 2
         return X, y
     X_new = np.vstack((X, new_samples))
-    y_new = np.hstack((y, labels[np.repeat(minority_labels, minority_counts)]))
+
+    y_new = np.hstack((y, np.repeat(list(sample.keys()), list(sample.values()))))
     self._status_code = 1
     return X_new, y_new</code></pre>
 </details>

@@ -105,6 +105,10 @@ For complete examples and visualizations, see the notebooks in the `notebooks/` 
 - `k`: Multiplier for standard deviation in boundary sample detection.
 - `eps`: Epsilon parameter for DBSCAN clustering (neighborhood distance).
 - `min_samples`: Minimum samples for DBSCAN to form a core point.
+- `sampling_strategy`: Sampling information to use for generating synthetic samples (`'auto'`, `'minority'`, `'not majority'`, float, dict, list, or callable).
+- `max_tries_until_change`: Maximum number of retries before changing boundary samples.
+- `max_iter`: Maximum number of total iterations allowed during sample generation.
+- `random_state`: Random seed for reproducibility.
 - `solver`: Centroid strategy (`'means'` for mean, `'density'` for densest point).
 - `progress`: Shows progress bar.
 
