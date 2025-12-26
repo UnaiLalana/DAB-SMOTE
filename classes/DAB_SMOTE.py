@@ -459,6 +459,7 @@ class DAB_SMOTE:
             X_min_removed = self._remove_noisy_samples(X_min)
             centers, clusters = self._clustering(X_min_removed)
             boundaries = self._screen_boundary_samples(X_min_removed, clusters)
+
             new_samples.append(
                 self._generate_new_samples(
                     X_min_removed, boundaries, clusters, centers, int(N)
