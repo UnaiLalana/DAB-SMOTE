@@ -251,7 +251,9 @@ class DAB_SMOTE:
             for cluster in unique_clusters:
                 cluster_points = X_min[clusters == cluster]
                 center = cluster_points.mean(axis=0)
-                closest_point = np.argmin(np.linalg.norm(cluster_points - center, axis=1))
+                closest_point = np.argmin(
+                    np.linalg.norm(cluster_points - center, axis=1)
+                )
                 centers_new.append(cluster_points[closest_point])
 
         centers_new = np.array(centers_new)
