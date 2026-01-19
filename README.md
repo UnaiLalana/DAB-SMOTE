@@ -26,9 +26,9 @@ DAB-SMOTE combines noise detection techniques, density-based clustering (DBSCAN)
     - `initial_test/`: Example dataset for quick tests.
 - `notebooks/`
     - `InitialTest.ipynb`: Basic usage and visualization example.
-    - `DensityBasedCenters.ipynb`: Advanced example with density-based centers.
+    - `SolversAnalysis.ipynb`: Analysis of solver methods.
     - `Visualization.ipynb`: Visualization notebook.
-    - `multiclass.ipynb`: Example of multiclass classification.
+    - `Multiclass.ipynb`: Example of multiclass classification.
     - `benchmarks/`:
         - `InitialBenchmarks.ipynb`: Simple benchmarking.
         - `StatisticalBenchmarkEvaluation.ipynb`: Statistical evaluation of benchmarks.
@@ -109,7 +109,7 @@ For complete examples and visualizations, see the notebooks in the `notebooks/` 
 - `max_tries_until_change`: Maximum number of retries before changing boundary samples.
 - `max_iter`: Maximum number of total iterations allowed during sample generation.
 - `random_state`: Random seed for reproducibility.
-- `solver`: Centroid strategy (`'means'` for mean, `'density'` for densest point).
+- `solver`: Centroid strategy (`'means'` for mean, `'density'` for densest point, `'closest'` for closest point to center).
 - `progress`: Shows progress bar.
 
 ## Datasets
