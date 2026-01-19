@@ -147,9 +147,10 @@ Universidad Publica de Navarra.</li>
         ----------
         X_min : np.ndarray
             Minority class samples to be clustered.
-        solver : {&#39;means&#39;, &#39;density&#39;}, default=&#39;means&#39;
+        solver : {&#39;means&#39;, &#39;density&#39;, &#39;closest&#39;}, default=&#39;means&#39;
             Method to compute cluster centers. If &#39;means&#39;, centers are the mean
             of cluster points. If &#39;density&#39;, the densest point is used as the center.
+            If &#39;closest&#39;, the closest point to the cluster center is used as the center.
 
         Returns
         -------
@@ -274,9 +275,10 @@ binary and multiclass classification problems.</p>
     ----------
     X_min : np.ndarray
         Minority class samples to be clustered.
-    solver : {&#39;means&#39;, &#39;density&#39;}, default=&#39;means&#39;
+    solver : {&#39;means&#39;, &#39;density&#39;, &#39;closest&#39;}, default=&#39;means&#39;
         Method to compute cluster centers. If &#39;means&#39;, centers are the mean
         of cluster points. If &#39;density&#39;, the densest point is used as the center.
+        If &#39;closest&#39;, the closest point to the cluster center is used as the center.
 
     Returns
     -------
@@ -297,9 +299,10 @@ computes cluster centers using the specified solver method.</p>
 <dl>
 <dt><strong><code>X_min</code></strong> :&ensp;<code>np.ndarray</code></dt>
 <dd>Minority class samples to be clustered.</dd>
-<dt><strong><code>solver</code></strong> :&ensp;<code>{'means', 'density'}</code>, default=<code>'means'</code></dt>
+<dt><strong><code>solver</code></strong> :&ensp;<code>{'means', 'density', 'closest'}</code>, default=<code>'means'</code></dt>
 <dd>Method to compute cluster centers. If 'means', centers are the mean
-of cluster points. If 'density', the densest point is used as the center.</dd>
+of cluster points. If 'density', the densest point is used as the center.
+If 'closest', the closest point to the cluster center is used as the center.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
