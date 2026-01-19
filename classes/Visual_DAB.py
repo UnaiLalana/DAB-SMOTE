@@ -107,9 +107,10 @@ class Visual_DAB(DAB_SMOTE):
         ----------
         X_min : np.ndarray
             Minority class samples to be clustered.
-        solver : {'means', 'density'}, default='means'
+        solver : {'means', 'density', 'closest'}, default='means'
             Method to compute cluster centers. If 'means', centers are the mean
             of cluster points. If 'density', the densest point is used as the center.
+            If 'closest', the closest point to the cluster center is used as the center.
 
         Returns
         -------

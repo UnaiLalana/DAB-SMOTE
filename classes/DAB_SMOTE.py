@@ -64,8 +64,8 @@ class DAB_SMOTE:
         Maximum number of total iterations allowed during sample generation.
     random_state : int, default=42
         Random seed for reproducibility.
-    solver : {'means', 'density'}, default='means'
-        Method used to calculate cluster centers ('means' or 'density').
+    solver : {'means', 'density', 'closest'}, default='means'
+        Method used to calculate cluster centers ('means', 'density', or 'closest').
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
 
@@ -247,6 +247,12 @@ class DAB_SMOTE:
                 most_dense_index = np.argmax(neighbor_counts)
                 most_dense_point = cluster_points[most_dense_index]
                 centers_new.append(most_dense_point)
+        elif self._solver == "closest":
+            for cluster in unique_clusters:
+                cluster_points = X_min[clusters == cluster]
+                center = cluster_points.mean(axis=0)
+                closest_point = np.argmin(np.linalg.norm(cluster_points - center, axis=1))
+                centers_new.append(cluster_points[closest_point])
 
         centers_new = np.array(centers_new)
         return centers_new, clusters
