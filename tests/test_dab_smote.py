@@ -111,6 +111,23 @@ def test_clustering_density_solver():
     assert centers.shape[1] == X.shape[1]
     assert len(clusters) == len(X)
 
+def test_clustering_closest_solver():
+    """
+    Test that _clustering works correctly when using the 'closest' solver.
+
+    Ensures that:
+    1. Closest-based centers are computed.
+    2. The output dimensions are valid.
+    """
+    X = np.random.rand(50, 2)
+    dab = DAB_SMOTE(solver="closest")
+
+    centers, clusters = dab._clustering(X)
+
+    assert centers.ndim == 2
+    assert centers.shape[1] == X.shape[1]
+    assert len(clusters) == len(X)
+
 def test_fit_resample_returns_original_when_generation_fails_safe():
     """
     Force _generate_new_samples to fail (return None) so fit_resample

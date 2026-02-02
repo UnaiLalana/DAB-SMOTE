@@ -106,8 +106,8 @@ Universidad Publica de Navarra.
         Maximum number of total iterations allowed during sample generation.
     random_state : int, default=42
         Random seed for reproducibility.
-    solver : {&#39;means&#39;, &#39;density&#39;}, default=&#39;means&#39;
-        Method used to calculate cluster centers (&#39;means&#39; or &#39;density&#39;).
+    solver : {&#39;means&#39;, &#39;density&#39;, &#39;closest&#39;}, default=&#39;means&#39;
+        Method used to calculate cluster centers (&#39;means&#39;, &#39;density&#39;, or &#39;closest&#39;).
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
 
@@ -289,6 +289,14 @@ Universidad Publica de Navarra.
                 most_dense_index = np.argmax(neighbor_counts)
                 most_dense_point = cluster_points[most_dense_index]
                 centers_new.append(most_dense_point)
+        elif self._solver == &#34;closest&#34;:
+            for cluster in unique_clusters:
+                cluster_points = X_min[clusters == cluster]
+                center = cluster_points.mean(axis=0)
+                closest_point = np.argmin(
+                    np.linalg.norm(cluster_points - center, axis=1)
+                )
+                centers_new.append(cluster_points[closest_point])
 
         centers_new = np.array(centers_new)
         return centers_new, clusters
@@ -501,6 +509,7 @@ Universidad Publica de Navarra.
             X_min_removed = self._remove_noisy_samples(X_min)
             centers, clusters = self._clustering(X_min_removed)
             boundaries = self._screen_boundary_samples(X_min_removed, clusters)
+
             new_samples.append(
                 self._generate_new_samples(
                     X_min_removed, boundaries, clusters, centers, int(N)
@@ -583,8 +592,8 @@ based on the input data.</p>
 <dd>Maximum number of total iterations allowed during sample generation.</dd>
 <dt><strong><code>random_state</code></strong> :&ensp;<code>int</code>, default=<code>42</code></dt>
 <dd>Random seed for reproducibility.</dd>
-<dt><strong><code>solver</code></strong> :&ensp;<code>{'means', 'density'}</code>, default=<code>'means'</code></dt>
-<dd>Method used to calculate cluster centers ('means' or 'density').</dd>
+<dt><strong><code>solver</code></strong> :&ensp;<code>{'means', 'density', 'closest'}</code>, default=<code>'means'</code></dt>
+<dd>Method used to calculate cluster centers ('means', 'density', or 'closest').</dd>
 <dt><strong><code>progress</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
 <dd>If True, shows a progress bar during sample generation.</dd>
 </dl>
@@ -706,6 +715,7 @@ multiclass, the status of the process, and other key metrics.</p>
         X_min_removed = self._remove_noisy_samples(X_min)
         centers, clusters = self._clustering(X_min_removed)
         boundaries = self._screen_boundary_samples(X_min_removed, clusters)
+
         new_samples.append(
             self._generate_new_samples(
                 X_min_removed, boundaries, clusters, centers, int(N)
