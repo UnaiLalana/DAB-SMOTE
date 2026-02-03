@@ -64,8 +64,8 @@ class DAB_SMOTE:
         Maximum number of total iterations allowed during sample generation.
     random_state : int, default=42
         Random seed for reproducibility.
-    solver : {'means', 'density', 'closest'}, default='means'
-        Method used to calculate cluster centers ('means', 'density', or 'closest').
+    solver : {'means', 'density', 'closest', 'mixed'}, default='means'
+        Method used to calculate cluster centers ('means', 'density', 'closest', or 'mixed').
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
 
@@ -255,6 +255,22 @@ class DAB_SMOTE:
                     np.linalg.norm(cluster_points - center, axis=1)
                 )
                 centers_new.append(cluster_points[closest_point])
+        elif self._solver == "mixed":
+            for cluster in unique_clusters:
+                cluster_points = X_min[clusters == cluster]
+                mean_center = cluster_points.mean(axis=0)
+
+                nbrs = NearestNeighbors(radius=self._eps).fit(cluster_points)
+                radii_neighbors = nbrs.radius_neighbors(
+                    cluster_points, return_distance=False
+                )
+                neighbor_counts = np.array([len(neigh) for neigh in radii_neighbors])
+
+                most_dense_index = np.argmax(neighbor_counts)
+                most_dense_point = cluster_points[most_dense_index]
+
+                mixed_center = (mean_center + most_dense_point) / 2.0
+                centers_new.append(mixed_center)
 
         centers_new = np.array(centers_new)
         return centers_new, clusters

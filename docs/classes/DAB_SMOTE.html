@@ -106,8 +106,8 @@ Universidad Publica de Navarra.
         Maximum number of total iterations allowed during sample generation.
     random_state : int, default=42
         Random seed for reproducibility.
-    solver : {&#39;means&#39;, &#39;density&#39;, &#39;closest&#39;}, default=&#39;means&#39;
-        Method used to calculate cluster centers (&#39;means&#39;, &#39;density&#39;, or &#39;closest&#39;).
+    solver : {&#39;means&#39;, &#39;density&#39;, &#39;closest&#39;, &#39;mixed&#39;}, default=&#39;means&#39;
+        Method used to calculate cluster centers (&#39;means&#39;, &#39;density&#39;, &#39;closest&#39;, or &#39;mixed&#39;).
     progress : bool, default=False
         If True, shows a progress bar during sample generation.
 
@@ -297,6 +297,22 @@ Universidad Publica de Navarra.
                     np.linalg.norm(cluster_points - center, axis=1)
                 )
                 centers_new.append(cluster_points[closest_point])
+        elif self._solver == &#34;mixed&#34;:
+            for cluster in unique_clusters:
+                cluster_points = X_min[clusters == cluster]
+                mean_center = cluster_points.mean(axis=0)
+
+                nbrs = NearestNeighbors(radius=self._eps).fit(cluster_points)
+                radii_neighbors = nbrs.radius_neighbors(
+                    cluster_points, return_distance=False
+                )
+                neighbor_counts = np.array([len(neigh) for neigh in radii_neighbors])
+
+                most_dense_index = np.argmax(neighbor_counts)
+                most_dense_point = cluster_points[most_dense_index]
+
+                mixed_center = (mean_center + most_dense_point) / 2.0
+                centers_new.append(mixed_center)
 
         centers_new = np.array(centers_new)
         return centers_new, clusters
@@ -592,8 +608,8 @@ based on the input data.</p>
 <dd>Maximum number of total iterations allowed during sample generation.</dd>
 <dt><strong><code>random_state</code></strong> :&ensp;<code>int</code>, default=<code>42</code></dt>
 <dd>Random seed for reproducibility.</dd>
-<dt><strong><code>solver</code></strong> :&ensp;<code>{'means', 'density', 'closest'}</code>, default=<code>'means'</code></dt>
-<dd>Method used to calculate cluster centers ('means', 'density', or 'closest').</dd>
+<dt><strong><code>solver</code></strong> :&ensp;<code>{'means', 'density', 'closest', 'mixed'}</code>, default=<code>'means'</code></dt>
+<dd>Method used to calculate cluster centers ('means', 'density', 'closest', or 'mixed').</dd>
 <dt><strong><code>progress</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
 <dd>If True, shows a progress bar during sample generation.</dd>
 </dl>
