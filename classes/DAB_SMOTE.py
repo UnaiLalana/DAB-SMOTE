@@ -147,8 +147,8 @@ class DAB_SMOTE:
             dists[i] = self._dist_methods[self._dist_method](x, X_min_mean)
 
         dists_sort = np.sort(dists)
-        Q1 = dists_sort[int(np.round((N + 1) * 0.25))]
-        Q3 = dists_sort[int(np.round((N + 1) * 0.75))]
+        Q1 = dists_sort[int(np.floor((N + 1) * 0.25))]
+        Q3 = dists_sort[int(np.floor((N + 1) * 0.75))]
         IQR = Q3 - Q1
         ub = Q1 + self._r * IQR
 
